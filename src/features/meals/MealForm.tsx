@@ -1,19 +1,25 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
-import type { Meal, MealType } from '../../api/client'
+import type { Allergen, BringCategory, Diet, Meal, MealType } from '../../api/client'
 import { Button } from '../../components/Button'
+import { ChipRadio, ChipSelect } from '../../components/ChipSelect'
 import { FormError } from '../../components/FormError'
 import { TextArea, TextField } from '../../components/TextField'
 import { parseEuroToCents } from '../../lib/format'
-import { MEAL_TYPE_OPTIONS } from './mealTypes'
+import { ALLERGENS, BRING_CATEGORIES, SUITABLE_FOR } from '../preferences/options'
+import { MEAL_TYPES } from './mealTypes'
 
 export type MealFields = {
   title: string
   description: string
   meal_type: MealType
-  price_cents: number
+  estimated_value_cents: number
   max_guests: number
   city: string
   neighborhood: string | null
+  guest_can_bring: BringCategory[]
+  bring_notes: string | null
+  allergens: Allergen[]
+  suitable_diets: Diet[]
 }
 
 type Props = {
@@ -26,42 +32,66 @@ type Props = {
   children?: (maxGuests: number) => ReactNode
 }
 
+const MEAL_TYPE_LABELS = Object.fromEntries(
+  Object.entries(MEAL_TYPES).map(([type, { label }]) => [type, label]),
+) as Record<MealType, string>
+
+function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+  return (
+    <section className="space-y-3 rounded-card border border-line p-5">
+      <div>
+        <h2 className="font-semibold">{title}</h2>
+        {hint && <p className="text-sm text-muted">{hint}</p>}
+      </div>
+      {children}
+    </section>
+  )
+}
+
 export function MealForm({ meal, submitLabel, isPending, error, onSubmit, children }: Props) {
   const [form, setForm] = useState({
     title: meal?.title ?? '',
     description: meal?.description ?? '',
-    meal_type: meal?.meal_type ?? ('dinner' as MealType),
-    price: meal ? String(meal.price_cents / 100).replace('.', ',') : '',
+    value: meal ? String(meal.estimated_value_cents / 100).replace('.', ',') : '',
     max_guests: meal ? String(meal.max_guests) : '4',
     city: meal?.city ?? '',
     neighborhood: meal?.neighborhood ?? '',
+    bring_notes: meal?.bring_notes ?? '',
   })
-  const [priceError, setPriceError] = useState<Error | null>(null)
+  const [mealType, setMealType] = useState<MealType>(meal?.meal_type ?? 'dinner')
+  const [guestCanBring, setGuestCanBring] = useState<BringCategory[]>(meal?.guest_can_bring ?? [])
+  const [allergens, setAllergens] = useState<Allergen[]>(meal?.allergens ?? [])
+  const [suitableDiets, setSuitableDiets] = useState<Diet[]>(meal?.suitable_diets ?? [])
+  const [valueError, setValueError] = useState<Error | null>(null)
 
   const update = (field: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    const priceCents = parseEuroToCents(form.price)
-    if (priceCents === null) {
-      setPriceError(new Error('Inserisci un prezzo valido, ad esempio 25 o 12,50'))
+    const valueCents = parseEuroToCents(form.value)
+    if (valueCents === null) {
+      setValueError(new Error('Inserisci una cifra valida, ad esempio 25 o 12,50'))
       return
     }
-    setPriceError(null)
+    setValueError(null)
     onSubmit({
       title: form.title,
       description: form.description,
-      meal_type: form.meal_type,
-      price_cents: priceCents,
+      meal_type: mealType,
+      estimated_value_cents: valueCents,
       max_guests: Number(form.max_guests),
       city: form.city,
       neighborhood: form.neighborhood.trim() || null,
+      guest_can_bring: guestCanBring,
+      bring_notes: form.bring_notes.trim() || null,
+      allergens,
+      suitable_diets: suitableDiets,
     })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <TextField
         label="Titolo"
         placeholder="Es. Cena romagnola con tagliatelle fatte a mano"
@@ -71,28 +101,12 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
         value={form.title}
         onChange={update('title')}
       />
-      <div>
+      <div className="space-y-2">
         <span className="text-sm font-medium">Tipo di pasto</span>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {MEAL_TYPE_OPTIONS.map(([value, { label }]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setForm((prev) => ({ ...prev, meal_type: value }))}
-              aria-pressed={form.meal_type === value}
-              className={`rounded-full border px-4 py-2 text-sm ${
-                form.meal_type === value
-                  ? 'border-ink bg-ink text-white'
-                  : 'border-gray-300 hover:border-ink'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <ChipRadio options={MEAL_TYPE_LABELS} value={mealType} onChange={setMealType} />
       </div>
       <TextArea
-        label="Descrizione: cosa cucini, l'atmosfera, allergeni"
+        label="Descrizione: cosa cucini, l'atmosfera, com'è la tua tavola"
         required
         minLength={10}
         maxLength={5000}
@@ -100,14 +114,6 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
         onChange={update('description')}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <TextField
-          label="Prezzo a persona (€)"
-          inputMode="decimal"
-          placeholder="25"
-          required
-          value={form.price}
-          onChange={update('price')}
-        />
         <TextField
           label="Ospiti massimi"
           type="number"
@@ -117,6 +123,7 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
           value={form.max_guests}
           onChange={update('max_guests')}
         />
+        <div />
         <TextField label="Città" required value={form.city} onChange={update('city')} />
         <TextField
           label="Quartiere (facoltativo)"
@@ -124,11 +131,53 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
           onChange={update('neighborhood')}
         />
       </div>
-      <p className="text-sm text-muted">
+      <p className="-mt-2 text-sm text-muted">
         L'indirizzo esatto non viene pubblicato: lo condividerai solo con chi prenota.
       </p>
+
+      <Section
+        title="Quanto faresti pagare questo pasto se dovessi venderlo?"
+        hint="Il pasto è gratuito: questa cifra, a persona, serve solo a dare un'idea agli ospiti."
+      >
+        <div className="max-w-40">
+          <TextField
+            label="Valore a persona (€)"
+            inputMode="decimal"
+            placeholder="25"
+            required
+            value={form.value}
+            onChange={update('value')}
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="Cosa può portare l'ospite?"
+        hint="Portare qualcosa è un gesto di convivialità, non un obbligo. Scegli cosa ti farebbe piacere."
+      >
+        <ChipSelect options={BRING_CATEGORIES} value={guestCanBring} onChange={setGuestCanBring} />
+        <TextArea
+          label="Suggerimenti (facoltativo)"
+          placeholder="Es. un rosso leggero si abbina benissimo, il dolce lo preparo io"
+          maxLength={500}
+          value={form.bring_notes}
+          onChange={update('bring_notes')}
+        />
+      </Section>
+
+      <Section
+        title="Allergeni presenti"
+        hint="Indica tutti gli allergeni contenuti nei piatti: gli ospiti allergici verranno avvisati."
+      >
+        <ChipSelect options={ALLERGENS} value={allergens} onChange={setAllergens} />
+      </Section>
+
+      <Section title="Adatto a" hint="Seleziona le diete compatibili con tutto il menù.">
+        <ChipSelect options={SUITABLE_FOR} value={suitableDiets} onChange={setSuitableDiets} />
+      </Section>
+
       {children?.(Number(form.max_guests) || 1)}
-      <FormError error={priceError ?? error} />
+      <FormError error={valueError ?? error} />
       <Button type="submit" disabled={isPending}>
         {isPending ? 'Salvataggio…' : submitLabel}
       </Button>

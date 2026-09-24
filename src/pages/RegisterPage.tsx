@@ -20,7 +20,7 @@ export function RegisterPage() {
       if (error) throw toApiError(response.status, error)
       await login(form.email, form.password)
     },
-    onSuccess: () => navigate('/profilo', { replace: true }),
+    onSuccess: () => navigate('/benvenuto', { replace: true }),
   })
 
   if (isAuthenticated && !mutation.isSuccess) return <Navigate to="/" replace />

@@ -32,3 +32,9 @@ export async function unwrap<T>(
   if (!response.ok) throw toApiError(response.status, error)
   return data as T
 }
+export type Diet = components['schemas']['Diet']
+export type Allergen = components['schemas']['Allergen']
+export type FavoriteFood = components['schemas']['FavoriteFood']
+export type BringCategory = components['schemas']['BringCategory']
+export type FoodPreferences = components['schemas']['FoodPreferences']
+export type HostPreferences = components['schemas']['HostPreferences']

@@ -31,7 +31,7 @@ export function MyMealsPage() {
             <div className="min-w-0 flex-1">
               <p className="truncate font-semibold">{meal.title}</p>
               <p className="text-sm text-muted">
-                {meal.city} · {formatPrice(meal.price_cents)} a persona ·{' '}
+                {meal.city} · valore {formatPrice(meal.estimated_value_cents)} ·{' '}
                 {meal.slots.length === 0
                   ? 'nessuna data futura'
                   : `${meal.slots.length} ${meal.slots.length === 1 ? 'data' : 'date'} in programma`}

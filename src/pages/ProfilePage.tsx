@@ -6,6 +6,8 @@ import { Button } from '../components/Button'
 import { FormError } from '../components/FormError'
 import { TextArea, TextField } from '../components/TextField'
 import { ME_QUERY_KEY, useAuth } from '../features/auth/AuthContext'
+import { PreferencesForm } from '../features/preferences/PreferencesForm'
+import { useSavePreferences } from '../features/preferences/queries'
 
 export function ProfilePage() {
   const { user, isLoadingUser } = useAuth()
@@ -96,6 +98,27 @@ function ProfileForm({ user }: { user: User }) {
           {mutation.isSuccess && <span className="text-sm text-green-700">Profilo aggiornato</span>}
         </div>
       </form>
+
+      <section className="mt-16 border-t border-line pt-10">
+        <h2 className="mb-6 text-2xl font-semibold">Preferenze a tavola</h2>
+        <PreferencesSection user={user} />
+      </section>
     </main>
+  )
+}
+
+function PreferencesSection({ user }: { user: User }) {
+  const save = useSavePreferences()
+  return (
+    <>
+      <PreferencesForm
+        user={user}
+        submitLabel="Salva preferenze"
+        isPending={save.isPending}
+        error={save.error}
+        onSubmit={(preferences) => save.mutate(preferences)}
+      />
+      {save.isSuccess && <p className="mt-3 text-sm text-green-700">Preferenze aggiornate</p>}
+    </>
   )
 }

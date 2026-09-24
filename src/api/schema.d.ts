@@ -59,6 +59,26 @@ export interface paths {
     patch: operations['update_me_users_me_patch']
     trace?: never
   }
+  '/users/me/preferences': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Update My Preferences
+     * @description Save the food preferences; the first save completes the sign-up.
+     */
+    put: operations['update_my_preferences_users_me_preferences_put']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/meals': {
     parameters: {
       query?: never
@@ -104,7 +124,10 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** Get Meal */
+    /**
+     * Get Meal
+     * @description Public; the host's food preferences are included only for logged-in users.
+     */
     get: operations['get_meal_meals__meal_id__get']
     put?: never
     post?: never
@@ -173,6 +196,26 @@ export interface paths {
 export type webhooks = Record<string, never>
 export interface components {
   schemas: {
+    /**
+     * Allergen
+     * @description The 14 allergens that EU Regulation 1169/2011 requires to be declared.
+     * @enum {string}
+     */
+    Allergen:
+      | 'gluten'
+      | 'crustaceans'
+      | 'eggs'
+      | 'fish'
+      | 'peanuts'
+      | 'soy'
+      | 'milk'
+      | 'tree_nuts'
+      | 'celery'
+      | 'mustard'
+      | 'sesame'
+      | 'sulphites'
+      | 'lupin'
+      | 'molluscs'
     /** Body_login_auth_login_post */
     Body_login_auth_login_post: {
       /** Grant Type */
@@ -197,10 +240,58 @@ export interface components {
        */
       client_secret?: string | null
     }
+    /**
+     * BringCategory
+     * @description What a guest may bring to a meal.
+     * @enum {string}
+     */
+    BringCategory: 'drinks' | 'dessert' | 'starter' | 'side' | 'bread' | 'fruit'
+    /**
+     * Diet
+     * @enum {string}
+     */
+    Diet: 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian' | 'no_pork' | 'halal' | 'kosher'
     /** ErrorResponse */
     ErrorResponse: {
       /** Detail */
       detail: string
+    }
+    /**
+     * FavoriteFood
+     * @enum {string}
+     */
+    FavoriteFood:
+      | 'italian'
+      | 'mediterranean'
+      | 'asian'
+      | 'japanese'
+      | 'indian'
+      | 'mexican'
+      | 'middle_eastern'
+      | 'spicy'
+      | 'seafood'
+      | 'meat'
+      | 'vegetarian_dishes'
+      | 'desserts'
+      | 'street_food'
+      | 'homestyle'
+    /**
+     * FoodPreferences
+     * @description Answered at sign-up (mandatory) and editable from the profile. Replaces all values.
+     */
+    FoodPreferences: {
+      diet: components['schemas']['Diet']
+      /**
+       * Allergies
+       * @description Empty = no allergies
+       */
+      allergies?: components['schemas']['Allergen'][]
+      /** Allergy Notes */
+      allergy_notes?: string | null
+      /** Favorite Foods */
+      favorite_foods?: components['schemas']['FavoriteFood'][]
+      /** Disliked Foods */
+      disliked_foods?: string | null
     }
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -211,6 +302,19 @@ export interface components {
     HealthResponse: {
       /** Status */
       status: string
+    }
+    /**
+     * HostPreferences
+     * @description The host's food preferences: health data, so only shown to logged-in users.
+     */
+    HostPreferences: {
+      diet: components['schemas']['Diet'] | null
+      /** Allergies */
+      allergies: components['schemas']['Allergen'][]
+      /** Allergy Notes */
+      allergy_notes: string | null
+      /** Disliked Foods */
+      disliked_foods: string | null
     }
     /**
      * HostPublic
@@ -244,16 +348,24 @@ export interface components {
       description: string
       meal_type: components['schemas']['MealType']
       /**
-       * Price Cents
-       * @description Price per person, in euro cents
+       * Estimated Value Cents
+       * @description Meals are free: what the host would charge per person, in euro cents
        */
-      price_cents: number
+      estimated_value_cents: number
       /** Max Guests */
       max_guests: number
       /** City */
       city: string
       /** Neighborhood */
       neighborhood?: string | null
+      /** Guest Can Bring */
+      guest_can_bring?: components['schemas']['BringCategory'][]
+      /** Bring Notes */
+      bring_notes?: string | null
+      /** Allergens */
+      allergens?: components['schemas']['Allergen'][]
+      /** Suitable Diets */
+      suitable_diets?: components['schemas']['Diet'][]
       /** Slots */
       slots?: components['schemas']['SlotCreate'][]
     }
@@ -269,14 +381,22 @@ export interface components {
       /** Description */
       description: string
       meal_type: components['schemas']['MealType']
-      /** Price Cents */
-      price_cents: number
+      /** Estimated Value Cents */
+      estimated_value_cents: number
       /** Max Guests */
       max_guests: number
       /** City */
       city: string
       /** Neighborhood */
       neighborhood: string | null
+      /** Guest Can Bring */
+      guest_can_bring: components['schemas']['BringCategory'][]
+      /** Bring Notes */
+      bring_notes: string | null
+      /** Allergens */
+      allergens: components['schemas']['Allergen'][]
+      /** Suitable Diets */
+      suitable_diets: components['schemas']['Diet'][]
       /** Is Active */
       is_active: boolean
       /**
@@ -285,6 +405,8 @@ export interface components {
        */
       created_at: string
       host: components['schemas']['HostPublic']
+      /** @description Only present when the request is authenticated */
+      host_preferences?: components['schemas']['HostPreferences'] | null
       /** Slots */
       slots: components['schemas']['SlotRead'][]
     }
@@ -303,14 +425,22 @@ export interface components {
       /** Description */
       description?: string
       meal_type?: components['schemas']['MealType']
-      /** Price Cents */
-      price_cents?: number
+      /** Estimated Value Cents */
+      estimated_value_cents?: number
       /** Max Guests */
       max_guests?: number
       /** City */
       city?: string
       /** Neighborhood */
       neighborhood?: string | null
+      /** Guest Can Bring */
+      guest_can_bring?: components['schemas']['BringCategory'][]
+      /** Bring Notes */
+      bring_notes?: string | null
+      /** Allergens */
+      allergens?: components['schemas']['Allergen'][]
+      /** Suitable Diets */
+      suitable_diets?: components['schemas']['Diet'][]
       /** Is Active */
       is_active?: boolean
     }
@@ -393,6 +523,17 @@ export interface components {
        * Format: date-time
        */
       created_at: string
+      diet: components['schemas']['Diet'] | null
+      /** Allergies */
+      allergies: components['schemas']['Allergen'][]
+      /** Allergy Notes */
+      allergy_notes: string | null
+      /** Favorite Foods */
+      favorite_foods: components['schemas']['FavoriteFood'][]
+      /** Disliked Foods */
+      disliked_foods: string | null
+      /** Has Completed Preferences */
+      has_completed_preferences: boolean
     }
     /**
      * UserUpdate
@@ -587,6 +728,48 @@ export interface operations {
       }
     }
   }
+  update_my_preferences_users_me_preferences_put: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FoodPreferences']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserRead']
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
   search_meals_meals_get: {
     parameters: {
       query?: {
@@ -647,6 +830,15 @@ export interface operations {
       }
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Conflict */
+      409: {
         headers: {
           [name: string]: unknown
         }
