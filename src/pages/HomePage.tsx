@@ -1,28 +1,63 @@
-import { useHealth } from '../api/health'
+import { useSearchParams } from 'react-router'
+import type { MealType } from '../api/client'
+import { PageState } from '../components/PageState'
+import { MealCard } from '../features/meals/MealCard'
+import { type MealFilters, useMealSearch } from '../features/meals/queries'
+import { SearchBar } from '../features/meals/SearchBar'
+
+// Filters live in the URL (?citta=bologna&tipo=dinner&data=2026-10-01) so searches can be shared
+function filtersFromParams(params: URLSearchParams): MealFilters {
+  return {
+    city: params.get('citta') ?? undefined,
+    meal_type: (params.get('tipo') as MealType | null) ?? undefined,
+    day: params.get('data') ?? undefined,
+  }
+}
 
 export function HomePage() {
-  const health = useHealth()
+  const [params, setParams] = useSearchParams()
+  const filters = filtersFromParams(params)
+  const meals = useMealSearch(filters)
+
+  function handleSearch(next: MealFilters) {
+    const entries = { citta: next.city, tipo: next.meal_type, data: next.day }
+    setParams(
+      Object.fromEntries(Object.entries(entries).filter(([, v]) => v)) as Record<string, string>,
+    )
+  }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-16">
-      <h1 className="text-4xl font-semibold tracking-tight">
-        Mangia a casa di qualcuno, <span className="text-brand-500">come a casa tua</span>.
-      </h1>
-      <p className="mt-4 max-w-2xl text-lg text-muted">
-        Scopri colazioni, pranzi e cene preparati da persone vicino a te, oppure apri la tua tavola
-        agli altri.
-      </p>
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      <section className="mx-auto max-w-3xl text-center">
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          Mangia a casa di qualcuno, <span className="text-brand-500">come a casa tua</span>.
+        </h1>
+        <p className="mt-4 text-lg text-muted">
+          Colazioni, pranzi e cene preparati da persone vicino a te.
+        </p>
+      </section>
 
-      <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm">
-        <span
-          className={`size-2.5 rounded-full ${
-            health.isSuccess ? 'bg-green-500' : health.isError ? 'bg-red-500' : 'bg-gray-300'
-          }`}
-        />
-        {health.isPending && 'Verifica API…'}
-        {health.isSuccess && 'API online'}
-        {health.isError && 'API offline'}
+      <div className="mx-auto mt-8 max-w-3xl">
+        {/* key: reset the inputs when the URL changes (e.g. back button) */}
+        <SearchBar key={params.toString()} initial={filters} onSearch={handleSearch} />
       </div>
+
+      <section className="mt-12">
+        {meals.isPending && <PageState>Cerchiamo i pasti disponibili…</PageState>}
+        {meals.isError && (
+          <PageState>Non riusciamo a caricare i pasti. Riprova tra poco.</PageState>
+        )}
+        {meals.data?.length === 0 && (
+          <PageState>Nessun pasto trovato. Prova a cambiare città o data.</PageState>
+        )}
+        {meals.data && meals.data.length > 0 && (
+          <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {meals.data.map((meal) => (
+              <MealCard key={meal.id} meal={meal} />
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   )
 }

@@ -1,5 +1,6 @@
 import createClient from 'openapi-fetch'
 import type { components, paths } from './schema'
+import { toApiError } from './errors'
 import { tokenStorage } from './token'
 
 export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
@@ -17,3 +18,17 @@ api.use({
 
 export type User = components['schemas']['UserRead']
 export type UserUpdate = components['schemas']['UserUpdate']
+export type Meal = components['schemas']['MealRead']
+export type MealType = components['schemas']['MealType']
+export type MealCreate = components['schemas']['MealCreate']
+export type MealUpdate = components['schemas']['MealUpdate']
+export type SlotCreate = components['schemas']['SlotCreate']
+
+/** Resolve an openapi-fetch call to its data, or throw a readable ApiError. */
+export async function unwrap<T>(
+  call: Promise<{ data?: T; error?: unknown; response: Response }>,
+): Promise<T> {
+  const { data, error, response } = await call
+  if (!response.ok) throw toApiError(response.status, error)
+  return data as T
+}
