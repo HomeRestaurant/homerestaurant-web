@@ -29,7 +29,7 @@ export function HomePage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       <section className="mx-auto max-w-3xl text-center">
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
           Mangia a casa di qualcuno, <span className="text-brand-500">come a casa tua</span>.
         </h1>
         <p className="mt-4 text-lg text-muted">

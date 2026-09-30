@@ -10,7 +10,7 @@ const variants = {
 export function Button({ variant = 'primary', className = '', ...props }: Props) {
   return (
     <button
-      className={`rounded-lg px-5 py-3 text-base font-semibold transition-colors disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+      className={`rounded-lg px-5 py-3 text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed ${variants[variant]} ${className}`}
       {...props}
     />
   )

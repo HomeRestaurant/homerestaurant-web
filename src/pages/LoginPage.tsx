@@ -33,6 +33,7 @@ export function LoginPage() {
           label="Email"
           type="email"
           autoComplete="email"
+          spellCheck={false}
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}

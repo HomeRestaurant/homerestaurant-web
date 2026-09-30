@@ -1,7 +1,7 @@
 import { useId, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 
 const fieldClass =
-  'mt-1 w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none focus:border-ink focus:ring-1 focus:ring-ink'
+  'mt-1 w-full rounded-lg border border-gray-300 px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink'
 
 type Props = InputHTMLAttributes<HTMLInputElement> & { label: string }
 

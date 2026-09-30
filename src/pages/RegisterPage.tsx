@@ -56,6 +56,7 @@ export function RegisterPage() {
           label="Email"
           type="email"
           autoComplete="email"
+          spellCheck={false}
           required
           value={form.email}
           onChange={update('email')}

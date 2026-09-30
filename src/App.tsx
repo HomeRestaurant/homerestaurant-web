@@ -18,23 +18,26 @@ export function App() {
     <BrowserRouter>
       <AuthProvider>
         <Header />
-        <Routes>
-          <Route path="/accedi" element={<LoginPage />} />
-          <Route path="/registrati" element={<RegisterPage />} />
-          <Route element={<RequireAuth />}>
-            <Route path="/benvenuto" element={<OnboardingPage />} />
-          </Route>
-          <Route element={<RequirePreferences />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/pasti/:mealId" element={<MealDetailPage />} />
+        {/* Target of the header's skip link */}
+        <div id="contenuto" tabIndex={-1} className="focus:outline-none">
+          <Routes>
+            <Route path="/accedi" element={<LoginPage />} />
+            <Route path="/registrati" element={<RegisterPage />} />
             <Route element={<RequireAuth />}>
-              <Route path="/profilo" element={<ProfilePage />} />
-              <Route path="/pasti/nuovo" element={<NewMealPage />} />
-              <Route path="/pasti/:mealId/modifica" element={<EditMealPage />} />
-              <Route path="/i-miei-pasti" element={<MyMealsPage />} />
+              <Route path="/benvenuto" element={<OnboardingPage />} />
             </Route>
-          </Route>
-        </Routes>
+            <Route element={<RequirePreferences />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/pasti/:mealId" element={<MealDetailPage />} />
+              <Route element={<RequireAuth />}>
+                <Route path="/profilo" element={<ProfilePage />} />
+                <Route path="/pasti/nuovo" element={<NewMealPage />} />
+                <Route path="/pasti/:mealId/modifica" element={<EditMealPage />} />
+                <Route path="/i-miei-pasti" element={<MyMealsPage />} />
+              </Route>
+            </Route>
+          </Routes>
+        </div>
       </AuthProvider>
     </BrowserRouter>
   )

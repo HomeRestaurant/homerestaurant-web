@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useId, useState, type FormEvent, type ReactNode } from 'react'
 import type { Allergen, BringCategory, Diet, Meal, MealType } from '../../api/client'
 import { Button } from '../../components/Button'
 import { ChipRadio, ChipSelect } from '../../components/ChipSelect'
@@ -58,6 +58,7 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
     neighborhood: meal?.neighborhood ?? '',
     bring_notes: meal?.bring_notes ?? '',
   })
+  const mealTypeLabelId = useId()
   const [mealType, setMealType] = useState<MealType>(meal?.meal_type ?? 'dinner')
   const [guestCanBring, setGuestCanBring] = useState<BringCategory[]>(meal?.guest_can_bring ?? [])
   const [allergens, setAllergens] = useState<Allergen[]>(meal?.allergens ?? [])
@@ -102,11 +103,18 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
         onChange={update('title')}
       />
       <div className="space-y-2">
-        <span className="text-sm font-medium">Tipo di pasto</span>
-        <ChipRadio options={MEAL_TYPE_LABELS} value={mealType} onChange={setMealType} />
+        <span id={mealTypeLabelId} className="text-sm font-medium">
+          Tipo di pasto
+        </span>
+        <ChipRadio
+          aria-labelledby={mealTypeLabelId}
+          options={MEAL_TYPE_LABELS}
+          value={mealType}
+          onChange={setMealType}
+        />
       </div>
       <TextArea
-        label="Descrizione: cosa cucini, l'atmosfera, com'è la tua tavola"
+        label="Descrizione: cosa cucini, l’atmosfera, com’è la tua tavola"
         required
         minLength={10}
         maxLength={5000}
@@ -137,7 +145,7 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
 
       <Section
         title="Quanto faresti pagare questo pasto se dovessi venderlo?"
-        hint="Il pasto è gratuito: questa cifra, a persona, serve solo a dare un'idea agli ospiti."
+        hint="Il pasto è gratuito: questa cifra, a persona, serve solo a dare un’idea agli ospiti."
       >
         <div className="max-w-40">
           <TextField
@@ -152,10 +160,15 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
       </Section>
 
       <Section
-        title="Cosa può portare l'ospite?"
+        title="Cosa può portare l’ospite?"
         hint="Portare qualcosa è un gesto di convivialità, non un obbligo. Scegli cosa ti farebbe piacere."
       >
-        <ChipSelect options={BRING_CATEGORIES} value={guestCanBring} onChange={setGuestCanBring} />
+        <ChipSelect
+          aria-label="Cosa può portare l’ospite"
+          options={BRING_CATEGORIES}
+          value={guestCanBring}
+          onChange={setGuestCanBring}
+        />
         <TextArea
           label="Suggerimenti (facoltativo)"
           placeholder="Es. un rosso leggero si abbina benissimo, il dolce lo preparo io"
@@ -169,11 +182,21 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
         title="Allergeni presenti"
         hint="Indica tutti gli allergeni contenuti nei piatti: gli ospiti allergici verranno avvisati."
       >
-        <ChipSelect options={ALLERGENS} value={allergens} onChange={setAllergens} />
+        <ChipSelect
+          aria-label="Allergeni presenti"
+          options={ALLERGENS}
+          value={allergens}
+          onChange={setAllergens}
+        />
       </Section>
 
       <Section title="Adatto a" hint="Seleziona le diete compatibili con tutto il menù.">
-        <ChipSelect options={SUITABLE_FOR} value={suitableDiets} onChange={setSuitableDiets} />
+        <ChipSelect
+          aria-label="Adatto a"
+          options={SUITABLE_FOR}
+          value={suitableDiets}
+          onChange={setSuitableDiets}
+        />
       </Section>
 
       {children?.(Number(form.max_guests) || 1)}

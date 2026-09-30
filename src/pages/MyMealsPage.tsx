@@ -20,7 +20,9 @@ export function MyMealsPage() {
       </div>
 
       {meals.isPending && <PageState>Caricamento…</PageState>}
-      {meals.isError && <PageState>{meals.error.message}</PageState>}
+      {meals.isError && (
+        <PageState>Non riusciamo a caricare i tuoi pasti. Ricarica la pagina e riprova.</PageState>
+      )}
       {meals.data?.length === 0 && (
         <PageState>Non hai ancora pubblicato nessun pasto. Inizia ora!</PageState>
       )}
@@ -46,6 +48,7 @@ export function MyMealsPage() {
             </div>
             <Link
               to={`/pasti/${meal.id}/modifica`}
+              aria-label={`Gestisci ${meal.title}`}
               className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
             >
               Gestisci

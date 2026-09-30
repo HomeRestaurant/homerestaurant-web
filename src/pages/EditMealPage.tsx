@@ -17,8 +17,21 @@ export function EditMealPage() {
   const meal = meals.data?.find((m) => m.id === mealId)
 
   if (meals.isPending) return <PageState>Caricamento…</PageState>
-  if (meals.isError) return <PageState>{meals.error.message}</PageState>
-  if (!meal) return <PageState>Pasto non trovato tra i tuoi.</PageState>
+  if (meals.isError) {
+    return (
+      <PageState>Non riusciamo a caricare i tuoi pasti. Ricarica la pagina e riprova.</PageState>
+    )
+  }
+  if (!meal) {
+    return (
+      <PageState>
+        Pasto non trovato tra i tuoi.{' '}
+        <Link to="/i-miei-pasti" className="font-semibold text-ink underline">
+          Torna ai tuoi pasti
+        </Link>
+      </PageState>
+    )
+  }
 
   return (
     <main className="mx-auto max-w-2xl space-y-12 px-6 py-10">
@@ -61,6 +74,8 @@ function SlotsSection({ meal }: { meal: Meal }) {
   const addSlots = useAddSlots(meal.id)
   const deleteSlot = useDeleteSlot(meal.id)
   const [rows, setRows] = useState(() => [newSlotRow()])
+  // Slot waiting for a second click to confirm deletion
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const payload = toSlotPayload(rows)
 
   return (
@@ -70,21 +85,46 @@ function SlotsSection({ meal }: { meal: Meal }) {
         <p className="mt-2 text-sm text-muted">Nessuna data futura: aggiungine una qui sotto.</p>
       ) : (
         <ul className="mt-3 divide-y divide-line">
-          {meal.slots.map((slot) => (
-            <li key={slot.id} className="flex items-center justify-between py-3 text-sm">
-              <span className="capitalize">
-                {formatSlotDate(slot.starts_at)}, {formatSlotTime(slot.starts_at)} · {slot.capacity}{' '}
-                posti
-              </span>
-              <button
-                onClick={() => deleteSlot.mutate(slot.id)}
-                disabled={deleteSlot.isPending}
-                className="rounded-lg px-3 py-1.5 text-muted hover:bg-gray-100"
-              >
-                Elimina
-              </button>
-            </li>
-          ))}
+          {meal.slots.map((slot) => {
+            const when = `${formatSlotDate(slot.starts_at)}, ${formatSlotTime(slot.starts_at)}`
+            const isDeleting = deleteSlot.isPending && deleteSlot.variables === slot.id
+            return (
+              <li key={slot.id} className="flex items-center justify-between gap-4 py-3 text-sm">
+                <span>
+                  <span className="inline-block first-letter:uppercase">{when}</span> ·{' '}
+                  {slot.capacity} posti
+                </span>
+                {confirmingId === slot.id ? (
+                  <span className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        deleteSlot.mutate(slot.id, { onSettled: () => setConfirmingId(null) })
+                      }
+                      disabled={isDeleting}
+                      className="rounded-lg bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                    >
+                      {isDeleting ? 'Eliminazione…' : 'Conferma eliminazione'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmingId(null)}
+                      disabled={isDeleting}
+                      className="rounded-lg px-3 py-1.5 text-muted hover:bg-gray-100"
+                    >
+                      Annulla
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setConfirmingId(slot.id)}
+                    aria-label={`Elimina la data ${when}`}
+                    className="rounded-lg px-3 py-1.5 text-muted hover:bg-gray-100"
+                  >
+                    Elimina
+                  </button>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
       <FormError error={deleteSlot.error} />
@@ -98,7 +138,7 @@ function SlotsSection({ meal }: { meal: Meal }) {
           disabled={addSlots.isPending || payload.length === 0}
           onClick={() => addSlots.mutate(payload, { onSuccess: () => setRows([newSlotRow()]) })}
         >
-          Salva date
+          {addSlots.isPending ? 'Salvataggio…' : 'Salva date'}
         </Button>
       </div>
     </section>
@@ -117,7 +157,9 @@ function DetailsSection({ meal }: { meal: Meal }) {
         error={update.error}
         onSubmit={(fields) => update.mutate(fields)}
       />
-      {update.isSuccess && <p className="mt-3 text-sm text-green-700">Modifiche salvate</p>}
+      <p role="status" className="mt-3 text-sm text-green-700">
+        {update.isSuccess && 'Modifiche salvate'}
+      </p>
     </section>
   )
 }
