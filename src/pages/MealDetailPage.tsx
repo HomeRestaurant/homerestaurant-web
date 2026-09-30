@@ -39,8 +39,8 @@ export function MealDetailPage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold">{data.title}</h1>
+        <div className="min-w-0">
+          <h1 className="text-3xl font-semibold break-words text-balance">{data.title}</h1>
           <p className="mt-1 text-muted">
             {MEAL_TYPES[data.meal_type].label} · {place}
           </p>
@@ -63,7 +63,10 @@ export function MealDetailPage() {
 
           <div>
             <div className="flex items-center gap-4 border-b border-line pb-6">
-              <div className="flex size-14 items-center justify-center rounded-full bg-brand-100 text-xl font-semibold text-brand-700">
+              <div
+                aria-hidden
+                className="flex size-14 items-center justify-center rounded-full bg-brand-100 text-xl font-semibold text-brand-700"
+              >
                 {data.host.first_name[0]?.toUpperCase()}
               </div>
               <div>
@@ -74,11 +77,15 @@ export function MealDetailPage() {
                 </p>
               </div>
             </div>
-            <p className="mt-6 leading-relaxed whitespace-pre-line">{data.description}</p>
+            <p className="mt-6 leading-relaxed break-words whitespace-pre-line">
+              {data.description}
+            </p>
             {data.host.bio && (
               <div className="mt-8 rounded-card bg-brand-50 p-6">
                 <p className="text-sm font-semibold">Chi è {data.host.first_name}</p>
-                <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">{data.host.bio}</p>
+                <p className="mt-2 text-sm leading-relaxed break-words whitespace-pre-line">
+                  {data.host.bio}
+                </p>
               </div>
             )}
           </div>
@@ -88,7 +95,7 @@ export function MealDetailPage() {
         </div>
 
         <aside className="h-fit rounded-card border border-line p-6 shadow-lg md:sticky md:top-6">
-          <p className="text-2xl font-semibold">Pasto offerto</p>
+          <h2 className="text-2xl font-semibold">Pasto offerto</h2>
           <p className="mt-1 text-sm text-muted">
             Secondo {data.host.first_name} varrebbe circa{' '}
             <span className="font-semibold text-ink">
@@ -97,14 +104,14 @@ export function MealDetailPage() {
             a persona. Fino a {data.max_guests} ospiti.
           </p>
 
-          <h2 className="mt-6 text-sm font-semibold">Prossime date</h2>
+          <h3 className="mt-6 text-sm font-semibold">Prossime date</h3>
           {data.slots.length === 0 ? (
             <p className="mt-2 text-sm text-muted">Nessuna data disponibile al momento.</p>
           ) : (
             <ul className="mt-2 divide-y divide-line">
               {data.slots.map((slot) => (
                 <li key={slot.id} className="flex justify-between py-2.5 text-sm">
-                  <span className="capitalize">
+                  <span className="inline-block first-letter:uppercase">
                     {formatSlotDate(slot.starts_at)}, {formatSlotTime(slot.starts_at)}
                   </span>
                   <span className="text-muted">{slot.capacity} posti</span>
@@ -127,8 +134,8 @@ export function MealDetailPage() {
 /** Shown when the meal conflicts with the logged-in user's allergies or diet. */
 function FoodWarningBanner({ meal }: { meal: Meal }) {
   const { user } = useAuth()
-  const { allergens, unsuitableDiet } = foodWarnings(user, meal)
-  if (allergens.length === 0 && !unsuitableDiet) return null
+  const { allergens, unsuitableDiets } = foodWarnings(user, meal)
+  if (allergens.length === 0 && unsuitableDiets.length === 0) return null
 
   return (
     <div
@@ -141,10 +148,10 @@ function FoodWarningBanner({ meal }: { meal: Meal }) {
           indicato tra le tue allergie.
         </p>
       )}
-      {unsuitableDiet && (
+      {unsuitableDiets.length > 0 && (
         <p className="text-red-800">
-          L'host non l'ha indicato come adatto alla tua alimentazione (
-          {DIETS[unsuitableDiet].toLowerCase()}): chiedi prima di prenotare.
+          L’host non l’ha indicato come adatto alla tua alimentazione (
+          {labelList(unsuitableDiets, DIETS).toLowerCase()}): chiedi prima di prenotare.
         </p>
       )}
     </div>
@@ -172,7 +179,7 @@ function BringSection({ meal }: { meal: Meal }) {
         <p className="text-muted">{name} non ha indicato nulla: basta la tua compagnia!</p>
       )}
       {meal.bring_notes && (
-        <p className="mt-3 leading-relaxed whitespace-pre-line">“{meal.bring_notes}”</p>
+        <p className="mt-3 leading-relaxed break-words whitespace-pre-line">“{meal.bring_notes}”</p>
       )}
 
       <div className="mt-5 flex gap-3 rounded-card border border-sky-200 bg-sky-50 p-5 text-sm">
@@ -209,24 +216,23 @@ function HostPreferencesSummary({
     )
   }
 
-  // No diet = the host never answered: unknown, which is not the same as "no restrictions"
-  if (!preferences.diet) return <p>{name} non ha ancora indicato le sue preferenze alimentari.</p>
+  // No diets = the host never answered: unknown, which is not the same as "no restrictions"
+  if (preferences.diets.length === 0)
+    return <p>{name} non ha ancora indicato le sue preferenze alimentari.</p>
 
+  const diets = preferences.diets.filter((diet) => diet !== 'omnivore')
   const allergies = [labelList(preferences.allergies, ALLERGENS), preferences.allergy_notes].filter(
     Boolean,
   )
-  const hasRestrictions =
-    (preferences.diet && preferences.diet !== 'omnivore') ||
-    allergies.length > 0 ||
-    preferences.disliked_foods
+  const hasRestrictions = diets.length > 0 || allergies.length > 0 || preferences.disliked_foods
 
   if (!hasRestrictions) return <p>{name} mangia di tutto e non ha allergie.</p>
 
   return (
     <ul className="space-y-1">
-      {preferences.diet && preferences.diet !== 'omnivore' && (
+      {diets.length > 0 && (
         <li>
-          <span className="font-semibold">Alimentazione:</span> {DIETS[preferences.diet]}
+          <span className="font-semibold">Alimentazione:</span> {labelList(diets, DIETS)}
         </li>
       )}
       {allergies.length > 0 && (

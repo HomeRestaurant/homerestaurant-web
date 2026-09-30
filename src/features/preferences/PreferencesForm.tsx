@@ -34,8 +34,14 @@ function Question({
   )
 }
 
+/** "Eats everything" contradicts any restriction: picking one side clears the other. */
+function exclusiveOmnivore(previous: Diet[], next: Diet[]): Diet[] {
+  if (next.includes('omnivore') && !previous.includes('omnivore')) return ['omnivore']
+  return next.length > 1 ? next.filter((diet) => diet !== 'omnivore') : next
+}
+
 export function PreferencesForm({ user, submitLabel, isPending, error, onSubmit }: Props) {
-  const [diet, setDiet] = useState<Diet | null>(user.diet)
+  const [diets, setDiets] = useState<Diet[]>(user.diets)
   const [allergyAnswer, setAllergyAnswer] = useState<AllergyAnswer | null>(() => {
     if (!user.has_completed_preferences) return null // must be answered explicitly
     return user.allergies.length > 0 || user.allergy_notes ? 'some' : 'none'
@@ -49,21 +55,21 @@ export function PreferencesForm({ user, submitLabel, isPending, error, onSubmit 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
     const problem =
-      diet === null
+      diets.length === 0
         ? 'Scegli la tua alimentazione'
         : allergyAnswer === null
           ? 'Dicci se hai allergie o intolleranze'
           : allergyAnswer === 'some' && allergies.length === 0 && !allergyNotes.trim()
             ? 'Seleziona le tue allergie o descrivile nelle note'
             : null
-    if (problem || diet === null) {
-      setValidationError(new Error(problem ?? ''))
+    if (problem) {
+      setValidationError(new Error(problem))
       return
     }
     setValidationError(null)
     const hasAllergies = allergyAnswer === 'some'
     onSubmit({
-      diet,
+      diets,
       allergies: hasAllergies ? allergies : [],
       allergy_notes: hasAllergies ? allergyNotes : null,
       favorite_foods: favorites,
@@ -73,8 +79,12 @@ export function PreferencesForm({ user, submitLabel, isPending, error, onSubmit 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <Question title="Come mangi?">
-        <ChipRadio options={DIETS} value={diet} onChange={setDiet} />
+      <Question title="Come mangi?" hint="Puoi sceglierne più di una.">
+        <ChipSelect
+          options={DIETS}
+          value={diets}
+          onChange={(next) => setDiets(exclusiveOmnivore(diets, next))}
+        />
       </Question>
 
       <Question title="Hai allergie o intolleranze?">

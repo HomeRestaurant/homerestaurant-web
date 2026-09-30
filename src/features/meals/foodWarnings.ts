@@ -9,21 +9,20 @@ const IMPLIED_DIETS: Partial<Record<Diet, Diet[]>> = {
 export type FoodWarnings = {
   /** Allergens in the meal that the user declared */
   allergens: Allergen[]
-  /** The user's diet, when the meal isn't declared suitable for it */
-  unsuitableDiet: Diet | null
+  /** The user's diets that the meal isn't declared suitable for */
+  unsuitableDiets: Diet[]
 }
 
 export function foodWarnings(
-  user: Pick<User, 'diet' | 'allergies'> | undefined,
+  user: Pick<User, 'diets' | 'allergies'> | undefined,
   meal: Pick<Meal, 'allergens' | 'suitable_diets'>,
 ): FoodWarnings {
-  if (!user) return { allergens: [], unsuitableDiet: null }
+  if (!user) return { allergens: [], unsuitableDiets: [] }
 
   const allergens = meal.allergens.filter((allergen) => user.allergies.includes(allergen))
 
   const suitable = new Set(meal.suitable_diets.flatMap((d) => [d, ...(IMPLIED_DIETS[d] ?? [])]))
-  const unsuitableDiet =
-    user.diet && user.diet !== 'omnivore' && !suitable.has(user.diet) ? user.diet : null
+  const unsuitableDiets = user.diets.filter((diet) => diet !== 'omnivore' && !suitable.has(diet))
 
-  return { allergens, unsuitableDiet }
+  return { allergens, unsuitableDiets }
 }

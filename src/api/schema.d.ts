@@ -280,7 +280,8 @@ export interface components {
      * @description Answered at sign-up (mandatory) and editable from the profile. Replaces all values.
      */
     FoodPreferences: {
-      diet: components['schemas']['Diet']
+      /** Diets */
+      diets: components['schemas']['Diet'][]
       /**
        * Allergies
        * @description Empty = no allergies
@@ -308,7 +309,11 @@ export interface components {
      * @description The host's food preferences: health data, so only shown to logged-in users.
      */
     HostPreferences: {
-      diet: components['schemas']['Diet'] | null
+      /**
+       * Diets
+       * @description Empty = the host hasn't answered yet
+       */
+      diets: components['schemas']['Diet'][]
       /** Allergies */
       allergies: components['schemas']['Allergen'][]
       /** Allergy Notes */
@@ -523,7 +528,11 @@ export interface components {
        * Format: date-time
        */
       created_at: string
-      diet: components['schemas']['Diet'] | null
+      /**
+       * Diets
+       * @description Empty = preferences not answered yet
+       */
+      diets: components['schemas']['Diet'][]
       /** Allergies */
       allergies: components['schemas']['Allergen'][]
       /** Allergy Notes */
