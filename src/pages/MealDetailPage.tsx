@@ -4,6 +4,7 @@ import type { HostPreferences, Meal } from '../api/client'
 import { ApiError } from '../api/errors'
 import { PageState } from '../components/PageState'
 import { useAuth } from '../features/auth/AuthContext'
+import { BookingPanel } from '../features/bookings/BookingPanel'
 import { foodWarnings } from '../features/meals/foodWarnings'
 import { MealCover } from '../features/meals/MealCover'
 import { MEAL_TYPES } from '../features/meals/mealTypes'
@@ -15,7 +16,7 @@ import {
   labelList,
   SUITABLE_FOR,
 } from '../features/preferences/options'
-import { formatMonthYear, formatPrice, formatSlotDate, formatSlotTime } from '../lib/format'
+import { formatMonthYear, formatPrice } from '../lib/format'
 
 export function MealDetailPage() {
   const { mealId = '' } = useParams()
@@ -112,27 +113,7 @@ export function MealDetailPage() {
             a persona. Fino a {data.max_guests} ospiti.
           </p>
 
-          <h3 className="mt-6 text-sm font-semibold">Prossime date</h3>
-          {data.slots.length === 0 ? (
-            <p className="mt-2 text-sm text-muted">Nessuna data disponibile al momento.</p>
-          ) : (
-            <ul className="mt-2 divide-y divide-line">
-              {data.slots.map((slot) => (
-                <li key={slot.id} className="flex justify-between py-2.5 text-sm">
-                  <span className="inline-block first-letter:uppercase">
-                    {formatSlotDate(slot.starts_at)}, {formatSlotTime(slot.starts_at)}
-                  </span>
-                  <span className="text-muted">{slot.capacity} posti</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <button
-            disabled
-            className="mt-6 w-full cursor-not-allowed rounded-lg bg-brand-500/60 py-3 font-semibold text-white"
-          >
-            Prenotazioni in arrivo
-          </button>
+          <BookingPanel meal={data} />
         </aside>
       </div>
     </main>
