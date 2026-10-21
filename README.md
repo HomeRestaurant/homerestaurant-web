@@ -3,23 +3,27 @@
 Frontend di HomeRestaurant: React + Vite + TypeScript + Tailwind CSS.
 
 ## Avvio in locale
+
 ```bash
 cp .env.example .env   # solo la prima volta
 npm install
 npm run dev            # http://localhost:5173
 ```
+
 Il backend (`homerestaurant-api`) deve girare su `http://localhost:8000` (l'indirizzo si cambia con `VITE_API_URL` in `.env`): senza, le richieste alle API falliscono.
 
 ## Comandi utili
-| Comando | Cosa fa |
-|---|---|
+
+| Comando           | Cosa fa                                                                  |
+| ----------------- | ------------------------------------------------------------------------ |
 | `npm run gen:api` | rigenera `src/api/schema.d.ts` dall'OpenAPI del backend (backend acceso) |
-| `npm run lint` | lint (oxlint) |
-| `npm run format` | formattazione (Prettier) |
-| `npm test` | test (Vitest) |
-| `npm run build` | build di produzione in `dist/` |
+| `npm run lint`    | lint (oxlint)                                                            |
+| `npm run format`  | formattazione (Prettier)                                                 |
+| `npm test`        | test (Vitest)                                                            |
+| `npm run build`   | build di produzione in `dist/`                                           |
 
 ## Struttura
+
 ```
 src/
 ├── api/          # client tipizzato (openapi-fetch), tipi generati, gestione errori, token
@@ -27,21 +31,27 @@ src/
 │   ├── auth/         # login, token, route protette
 │   ├── meals/        # pasti, date, form, avvisi su allergeni e diete
 │   ├── preferences/  # preferenze alimentari e relative opzioni
-│   └── bookings/     # vuota: le prenotazioni non sono state sviluppate
-├── components/   # UI riutilizzabile
+│   ├── bookings/     # richieste degli ospiti (BookingPanel), richieste dell'host, stati e filtri
+│   └── notifications/ # campanella, elenco e link sicuri delle notifiche in-app
+├── components/   # UI riutilizzabile (tra cui ConfirmAction: azione in due passaggi con focus gestito)
 ├── lib/          # utilità (formattazione di date e prezzi con Intl)
 ├── pages/        # pagine collegate alle route
 └── styles/       # token di design (colori, font) in index.css
 ```
+
+Route principali: `/` (pasti), `/pasti/:id` (dettaglio e richiesta di prenotazione), `/prenotazioni` (le mie prenotazioni da ospite), `/pasti/:id/richieste` (richieste ricevute dall'host), `/notifiche`, `/i-miei-pasti`, `/profilo`. Le ultime pagine richiedono il login.
+
 Dopo ogni modifica alle API del backend: `npm run gen:api`. TypeScript segnala cosa va aggiornato.
 
 ## Deploy
+
 Vercel: importa la repo, preset Vite, variabile `VITE_API_URL` = URL del backend su Render.
 `vercel.json` reindirizza tutte le route a `index.html` (necessario per React Router).
 
 Il repo è nell'organizzazione GitHub `HomeRestaurant` ed è **pubblico**: il piano gratuito di Vercel non pubblica in automatico i repo privati di un'organizzazione. Non ci sono segreti nel codice, perché `VITE_API_URL` finisce nel bundle JS e `.env` è escluso da git.
 
 ## Flusso di lavoro
+
 - `main` accetta modifiche solo tramite pull request e richiede il controllo `test` (il job in `.github/workflows/ci.yml`: lint, test, build). Un push diretto viene rifiutato.
 - Ogni unione a `main` pubblica in produzione su Vercel. Se cambiano le API, pubblica prima il backend (`homerestaurant-api`) e aspetta che il deploy sia "Live".
 - Le anteprime dei branch su Vercel chiamano l'API di produzione, che blocca le loro richieste per CORS: prova le modifiche in locale con `npm run dev`.

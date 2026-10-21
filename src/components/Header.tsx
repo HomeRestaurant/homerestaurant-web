@@ -36,6 +36,9 @@ export function Header() {
               <Link to="/i-miei-pasti" className={navItem}>
                 I miei pasti
               </Link>
+              <Link to="/prenotazioni" className={navItem}>
+                Le mie prenotazioni
+              </Link>
               <NotificationBell className={`${navItem} flex items-center`} />
               <Link to="/profilo" className={`${navItem} max-w-48 truncate`}>
                 {user ? `Ciao, ${user.first_name}` : 'Profilo'}
