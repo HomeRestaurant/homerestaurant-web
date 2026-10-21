@@ -158,6 +158,134 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/meals/{meal_id}/slots/{slot_id}/bookings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Create Booking
+     * @description Request seats for a date; the host must confirm. Pending requests don't hold seats.
+     */
+    post: operations['create_booking_meals__meal_id__slots__slot_id__bookings_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/bookings/mine': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List My Bookings */
+    get: operations['list_my_bookings_bookings_mine_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/bookings/{booking_id}/cancel': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Cancel My Booking
+     * @description Always possible until the meal starts; a late one (under 24h) is recorded.
+     */
+    post: operations['cancel_my_booking_bookings__booking_id__cancel_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/meals/{meal_id}/bookings': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** List Meal Bookings */
+    get: operations['list_meal_bookings_meals__meal_id__bookings_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/meals/{meal_id}/bookings/{booking_id}/confirm': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Confirm Booking */
+    post: operations['confirm_booking_meals__meal_id__bookings__booking_id__confirm_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/meals/{meal_id}/bookings/{booking_id}/decline': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Decline Booking */
+    post: operations['decline_booking_meals__meal_id__bookings__booking_id__decline_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/meals/{meal_id}/bookings/{booking_id}/cancel': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Cancel Booking As Host
+     * @description Only for confirmed bookings; a pending request must be declined instead.
+     */
+    post: operations['cancel_booking_as_host_meals__meal_id__bookings__booking_id__cancel_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/meals/{meal_id}/slots/{slot_id}': {
     parameters: {
       query?: never
@@ -168,8 +296,82 @@ export interface paths {
     get?: never
     put?: never
     post?: never
-    /** Delete Slot */
+    /**
+     * Delete Slot
+     * @description Refused (409) while the date has pending or confirmed bookings.
+     */
     delete: operations['delete_slot_meals__meal_id__slots__slot_id__delete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/notifications': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List Notifications
+     * @description Newest first, read and unread.
+     */
+    get: operations['list_notifications_notifications_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/notifications/unread-count': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Unread Count */
+    get: operations['unread_count_notifications_unread_count_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/notifications/read-all': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Read All */
+    post: operations['read_all_notifications_read_all_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/notifications/{notification_id}/read': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Mark Read */
+    post: operations['mark_read_notifications__notification_id__read_post']
+    delete?: never
     options?: never
     head?: never
     patch?: never
@@ -241,11 +443,68 @@ export interface components {
       client_secret?: string | null
     }
     /**
+     * BookingAction
+     * @description Body of the host's decline and cancel; `{}` is valid.
+     */
+    BookingAction: {
+      /** Reason */
+      reason?: string | null
+    }
+    /** BookingCreate */
+    BookingCreate: {
+      /** Seats */
+      seats: number
+      /** Message */
+      message?: string | null
+    }
+    /**
+     * BookingGuestRead
+     * @description What the host sees of a guest: never id, email or surname.
+     */
+    BookingGuestRead: {
+      /** First Name */
+      first_name: string
+      /** Avatar Url */
+      avatar_url: string | null
+    }
+    /** BookingMealRead */
+    BookingMealRead: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** Title */
+      title: string
+      meal_type: components['schemas']['MealType']
+      /** City */
+      city: string
+      /** Neighborhood */
+      neighborhood: string | null
+      host: components['schemas']['HostPublic']
+    }
+    /**
+     * BookingScope
+     * @description Which bookings a list shows: starting from now, or already started.
+     * @enum {string}
+     */
+    BookingScope: 'upcoming' | 'past'
+    /**
+     * BookingStatus
+     * @enum {string}
+     */
+    BookingStatus: 'pending' | 'confirmed' | 'declined' | 'cancelled' | 'expired'
+    /**
      * BringCategory
      * @description What a guest may bring to a meal.
      * @enum {string}
      */
     BringCategory: 'drinks' | 'dessert' | 'starter' | 'side' | 'bread' | 'fruit'
+    /**
+     * CancelledBy
+     * @enum {string}
+     */
+    CancelledBy: 'guest' | 'host'
     /**
      * Diet
      * @enum {string}
@@ -294,6 +553,65 @@ export interface components {
       /** Disliked Foods */
       disliked_foods?: string | null
     }
+    /** GuestBookingRead */
+    GuestBookingRead: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** Slot Id */
+      slot_id: string | null
+      /**
+       * Starts At
+       * Format: date-time
+       */
+      starts_at: string
+      /** Seats */
+      seats: number
+      status: components['schemas']['BookingStatus']
+      /** Message */
+      message: string | null
+      /** Status Reason */
+      status_reason: string | null
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string
+      /** Responded At */
+      responded_at: string | null
+      /** Cancelled At */
+      cancelled_at: string | null
+      cancelled_by: components['schemas']['CancelledBy'] | null
+      /** Cancelled Late */
+      cancelled_late: boolean
+      /**
+       * Late Cancellation Window
+       * @description True if cancelling now would be recorded as a late cancellation
+       */
+      late_cancellation_window: boolean
+      meal: components['schemas']['BookingMealRead']
+      /**
+       * Exact Address
+       * @description Only for confirmed bookings of meals that have not started yet
+       */
+      exact_address: string | null
+    }
+    /**
+     * GuestDietary
+     * @description Health data read from the guest's profile (never copied into the booking).
+     */
+    GuestDietary: {
+      /** Diets */
+      diets: components['schemas']['Diet'][]
+      /** Allergies */
+      allergies: components['schemas']['Allergen'][]
+      /** Allergy Notes */
+      allergy_notes: string | null
+      /** Disliked Foods */
+      disliked_foods: string | null
+    }
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -303,6 +621,53 @@ export interface components {
     HealthResponse: {
       /** Status */
       status: string
+    }
+    /** HostBookingRead */
+    HostBookingRead: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /**
+       * Meal Id
+       * Format: uuid
+       */
+      meal_id: string
+      /** Slot Id */
+      slot_id: string | null
+      /**
+       * Starts At
+       * Format: date-time
+       */
+      starts_at: string
+      /** Seats */
+      seats: number
+      status: components['schemas']['BookingStatus']
+      /** Message */
+      message: string | null
+      /** Status Reason */
+      status_reason: string | null
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string
+      /** Responded At */
+      responded_at: string | null
+      /** Cancelled At */
+      cancelled_at: string | null
+      cancelled_by: components['schemas']['CancelledBy'] | null
+      /** Cancelled Late */
+      cancelled_late: boolean
+      /**
+       * Late Cancellation Window
+       * @description True if cancelling now would be recorded as a late cancellation
+       */
+      late_cancellation_window: boolean
+      guest: components['schemas']['BookingGuestRead']
+      /** @description Only for pending or confirmed bookings of meals that have not started yet */
+      guest_dietary: components['schemas']['GuestDietary'] | null
     }
     /**
      * HostPreferences
@@ -363,6 +728,11 @@ export interface components {
       city: string
       /** Neighborhood */
       neighborhood?: string | null
+      /**
+       * Exact Address
+       * @description Private: shown only to confirmed guests
+       */
+      exact_address?: string | null
       /** Guest Can Bring */
       guest_can_bring?: components['schemas']['BringCategory'][]
       /** Bring Notes */
@@ -373,6 +743,52 @@ export interface components {
       suitable_diets?: components['schemas']['Diet'][]
       /** Slots */
       slots?: components['schemas']['SlotCreate'][]
+    }
+    /**
+     * MealOwnerRead
+     * @description What the host sees of their own meal: adds the private exact address.
+     */
+    MealOwnerRead: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** Title */
+      title: string
+      /** Description */
+      description: string
+      meal_type: components['schemas']['MealType']
+      /** Estimated Value Cents */
+      estimated_value_cents: number
+      /** Max Guests */
+      max_guests: number
+      /** City */
+      city: string
+      /** Neighborhood */
+      neighborhood: string | null
+      /** Guest Can Bring */
+      guest_can_bring: components['schemas']['BringCategory'][]
+      /** Bring Notes */
+      bring_notes: string | null
+      /** Allergens */
+      allergens: components['schemas']['Allergen'][]
+      /** Suitable Diets */
+      suitable_diets: components['schemas']['Diet'][]
+      /** Is Active */
+      is_active: boolean
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string
+      host: components['schemas']['HostPublic']
+      /** @description Only present when the request is authenticated */
+      host_preferences?: components['schemas']['HostPreferences'] | null
+      /** Slots */
+      slots: components['schemas']['SlotRead'][]
+      /** Exact Address */
+      exact_address: string | null
     }
     /** MealRead */
     MealRead: {
@@ -438,6 +854,8 @@ export interface components {
       city?: string
       /** Neighborhood */
       neighborhood?: string | null
+      /** Exact Address */
+      exact_address?: string | null
       /** Guest Can Bring */
       guest_can_bring?: components['schemas']['BringCategory'][]
       /** Bring Notes */
@@ -449,6 +867,40 @@ export interface components {
       /** Is Active */
       is_active?: boolean
     }
+    /** NotificationRead */
+    NotificationRead: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      type: components['schemas']['NotificationType']
+      /** Title */
+      title: string
+      /** Body */
+      body: string
+      /** Link */
+      link: string | null
+      /** Booking Id */
+      booking_id: string | null
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string
+      /** Read At */
+      read_at: string | null
+    }
+    /**
+     * NotificationType
+     * @enum {string}
+     */
+    NotificationType:
+      | 'booking_requested'
+      | 'booking_confirmed'
+      | 'booking_declined'
+      | 'booking_cancelled_by_guest'
+      | 'booking_cancelled_by_host'
     /** SlotCreate */
     SlotCreate: {
       /**
@@ -476,6 +928,8 @@ export interface components {
       starts_at: string
       /** Capacity */
       capacity: number
+      /** Available Seats */
+      available_seats: number
     }
     /** Token */
     Token: {
@@ -486,6 +940,11 @@ export interface components {
        * @default bearer
        */
       token_type: string
+    }
+    /** UnreadCountRead */
+    UnreadCountRead: {
+      /** Count */
+      count: number
     }
     /** UserCreate */
     UserCreate: {
@@ -834,7 +1293,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['MealRead']
+          'application/json': components['schemas']['MealOwnerRead']
         }
       }
       /** @description Unauthorized */
@@ -881,7 +1340,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['MealRead'][]
+          'application/json': components['schemas']['MealOwnerRead'][]
         }
       }
       /** @description Unauthorized */
@@ -956,7 +1415,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['MealRead']
+          'application/json': components['schemas']['MealOwnerRead']
         }
       }
       /** @description Unauthorized */
@@ -1018,7 +1477,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['MealRead']
+          'application/json': components['schemas']['MealOwnerRead']
         }
       }
       /** @description Unauthorized */
@@ -1059,6 +1518,454 @@ export interface operations {
       }
     }
   }
+  create_booking_meals__meal_id__slots__slot_id__bookings_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        meal_id: string
+        slot_id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BookingCreate']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['GuestBookingRead']
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+    }
+  }
+  list_my_bookings_bookings_mine_get: {
+    parameters: {
+      query?: {
+        scope?: components['schemas']['BookingScope']
+        limit?: number
+        offset?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['GuestBookingRead'][]
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  cancel_my_booking_bookings__booking_id__cancel_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        booking_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['GuestBookingRead']
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  list_meal_bookings_meals__meal_id__bookings_get: {
+    parameters: {
+      query?: {
+        scope?: components['schemas']['BookingScope']
+        slot_id?: string | null
+        status?: components['schemas']['BookingStatus'] | null
+        limit?: number
+        offset?: number
+      }
+      header?: never
+      path: {
+        meal_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HostBookingRead'][]
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  confirm_booking_meals__meal_id__bookings__booking_id__confirm_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        booking_id: string
+        meal_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HostBookingRead']
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  decline_booking_meals__meal_id__bookings__booking_id__decline_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        booking_id: string
+        meal_id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BookingAction']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HostBookingRead']
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+    }
+  }
+  cancel_booking_as_host_meals__meal_id__bookings__booking_id__cancel_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        booking_id: string
+        meal_id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BookingAction']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HostBookingRead']
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+    }
+  }
   delete_slot_meals__meal_id__slots__slot_id__delete: {
     parameters: {
       query?: never
@@ -1089,6 +1996,161 @@ export interface operations {
       }
       /** @description Forbidden */
       403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  list_notifications_notifications_get: {
+    parameters: {
+      query?: {
+        limit?: number
+        offset?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['NotificationRead'][]
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  unread_count_notifications_unread_count_get: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UnreadCountRead']
+        }
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+    }
+  }
+  read_all_notifications_read_all_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+    }
+  }
+  mark_read_notifications__notification_id__read_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        notification_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['NotificationRead']
+        }
+      }
+      /** @description Unauthorized */
+      401: {
         headers: {
           [name: string]: unknown
         }

@@ -1,5 +1,5 @@
 import { useId, useState, type FormEvent, type ReactNode } from 'react'
-import type { Allergen, BringCategory, Diet, Meal, MealType } from '../../api/client'
+import type { Allergen, BringCategory, Diet, MealOwner, MealType } from '../../api/client'
 import { Button } from '../../components/Button'
 import { ChipRadio, ChipSelect } from '../../components/ChipSelect'
 import { FormError } from '../../components/FormError'
@@ -16,6 +16,8 @@ export type MealFields = {
   max_guests: number
   city: string
   neighborhood: string | null
+  /** Private: shared only with guests whose booking is confirmed. Null = none. */
+  exact_address: string | null
   guest_can_bring: BringCategory[]
   bring_notes: string | null
   allergens: Allergen[]
@@ -23,7 +25,7 @@ export type MealFields = {
 }
 
 type Props = {
-  meal?: Meal
+  meal?: MealOwner
   submitLabel: string
   isPending: boolean
   error: Error | null
@@ -56,9 +58,11 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
     max_guests: meal ? String(meal.max_guests) : '4',
     city: meal?.city ?? '',
     neighborhood: meal?.neighborhood ?? '',
+    exact_address: meal?.exact_address ?? '',
     bring_notes: meal?.bring_notes ?? '',
   })
   const mealTypeLabelId = useId()
+  const addressHintId = useId()
   const [mealType, setMealType] = useState<MealType>(meal?.meal_type ?? 'dinner')
   const [guestCanBring, setGuestCanBring] = useState<BringCategory[]>(meal?.guest_can_bring ?? [])
   const [allergens, setAllergens] = useState<Allergen[]>(meal?.allergens ?? [])
@@ -84,6 +88,7 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
       max_guests: Number(form.max_guests),
       city: form.city,
       neighborhood: form.neighborhood.trim() || null,
+      exact_address: form.exact_address.trim() || null,
       guest_can_bring: guestCanBring,
       bring_notes: form.bring_notes.trim() || null,
       allergens,
@@ -139,9 +144,19 @@ export function MealForm({ meal, submitLabel, isPending, error, onSubmit, childr
           onChange={update('neighborhood')}
         />
       </div>
-      <p className="-mt-2 text-sm text-muted">
-        L'indirizzo esatto non viene pubblicato: lo condividerai solo con chi prenota.
-      </p>
+      <div>
+        <TextField
+          label="Indirizzo esatto (facoltativo)"
+          autoComplete="street-address"
+          maxLength={255}
+          aria-describedby={addressHintId}
+          value={form.exact_address}
+          onChange={update('exact_address')}
+        />
+        <p id={addressHintId} className="mt-1 text-sm text-muted">
+          Lo vedono solo gli ospiti con prenotazione confermata.
+        </p>
+      </div>
 
       <Section
         title="Quanto faresti pagare questo pasto se dovessi venderlo?"

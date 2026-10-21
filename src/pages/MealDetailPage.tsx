@@ -46,12 +46,20 @@ export function MealDetailPage() {
           </p>
         </div>
         {isOwner && (
-          <Link
-            to={`/pasti/${data.id}/modifica`}
-            className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
-          >
-            Modifica
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              to={`/pasti/${data.id}/richieste`}
+              className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+            >
+              Richieste
+            </Link>
+            <Link
+              to={`/pasti/${data.id}/modifica`}
+              className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+            >
+              Modifica
+            </Link>
+          </div>
         )}
       </div>
 
@@ -237,12 +245,12 @@ function HostPreferencesSummary({
       )}
       {allergies.length > 0 && (
         <li>
-          <span className="font-semibold">Allergie e intolleranze:</span> {allergies.join('. ')}
+          <span className="font-semibold">Allergie e intolleranze:</span> {allergies.join(', ')}
         </li>
       )}
       {preferences.disliked_foods && (
         <li>
-          <span className="font-semibold">Non mangia:</span> {preferences.disliked_foods}
+          <span className="font-semibold">Non gradisce:</span> {preferences.disliked_foods}
         </li>
       )}
     </ul>
