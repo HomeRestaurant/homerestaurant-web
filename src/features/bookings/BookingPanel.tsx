@@ -1,5 +1,5 @@
 import { useId, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import type { Meal, Slot } from '../../api/client'
 import { Button } from '../../components/Button'
 import { FormError } from '../../components/FormError'
@@ -15,6 +15,7 @@ import {
   clampSeats,
   futureSlots,
   isChoosable,
+  isRequestStillValid,
   resolveSelectedSlot,
 } from './guestBookings'
 import { useCreateBooking, useMyBookings } from './queries'
@@ -25,9 +26,15 @@ const linkClass = `font-semibold underline rounded ${focusRing}`
 
 /** Date choice and booking request in the sidebar of the meal page. */
 export function BookingPanel({ meal }: { meal: Meal }) {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, isLoadingUser, user } = useAuth()
+  const location = useLocation()
   const isHost = user?.id === meal.host.id
   const slots = futureSlots(meal.slots)
+
+  // Until the profile arrives we can't tell the host from a guest, nor compute food warnings
+  if (isLoadingUser) {
+    return <p className="mt-6 text-sm text-muted">Caricamento…</p>
+  }
 
   return (
     <div className="mt-6">
@@ -42,6 +49,7 @@ export function BookingPanel({ meal }: { meal: Meal }) {
           <DateList slots={slots} />
           <Link
             to="/accedi"
+            state={{ from: location.pathname }}
             className={`mt-6 block w-full rounded-lg bg-brand-500 py-3 text-center font-semibold text-white hover:bg-brand-600 ${focusRing}`}
           >
             Accedi per prenotare
@@ -98,9 +106,12 @@ function RequestForm({ meal, slots }: { meal: Meal; slots: Slot[] }) {
   const [slotId, setSlotId] = useState<string | null>(null)
   const [seats, setSeats] = useState(1)
   const [message, setMessage] = useState('')
-  const [reviewing, setReviewing] = useState(false)
+  // What the guest saw when moving to the summary: that, not live data, is what gets sent
+  const [frozen, setFrozen] = useState<{ slotId: string; seats: number } | null>(null)
+  const [notice, setNotice] = useState('')
   const [sent, setSent] = useState('')
   const seatsId = useId()
+  const summaryTitleId = useId()
   const summary = useRef<HTMLDivElement>(null)
   const firstStepButton = useRef<HTMLButtonElement>(null)
 
@@ -108,19 +119,28 @@ function RequestForm({ meal, slots }: { meal: Meal; slots: Slot[] }) {
   const selected = resolveSelectedSlot(slots, active, slotId)
   const options = selected ? seatOptions(selected.available_seats) : []
   const chosenSeats = selected ? clampSeats(seats, selected.available_seats) : 1
+  const reviewing = frozen !== null
   const hasChoosable = slots.some((slot) => isChoosable(slot, active))
   const warnings = foodWarnings(user, meal)
   const hasWarnings = warnings.allergens.length > 0 || warnings.unsuitableDiets.length > 0
 
+  // A refetch may have taken the reviewed date or seats away: go back to the choice, send nothing
+  // (state set during render, guarded so it runs once)
+  if (frozen && !isRequestStillValid(slots, frozen.slotId, frozen.seats, active)) {
+    setFrozen(null)
+    setNotice('La data scelta non ha più posti sufficienti: scegli di nuovo.')
+  }
+  const reviewedSlot = frozen ? slots.find((slot) => slot.id === frozen.slotId) : undefined
+
   function reset() {
-    setReviewing(false)
+    setFrozen(null)
     create.reset()
   }
 
   function submit() {
-    if (!selected) return
+    if (!frozen) return
     create.mutate(
-      { slotId: selected.id, seats: chosenSeats, message },
+      { slotId: frozen.slotId, seats: frozen.seats, message },
       {
         onSuccess: () => {
           setSent(
@@ -128,10 +148,10 @@ function RequestForm({ meal, slots }: { meal: Meal; slots: Slot[] }) {
           )
           setMessage('')
           setSeats(1)
-          setReviewing(false)
+          setFrozen(null)
         },
         // The seats may have just run out: go back to the choice, where the error is shown
-        onError: () => setReviewing(false),
+        onError: () => setFrozen(null),
       },
     )
   }
@@ -168,6 +188,8 @@ function RequestForm({ meal, slots }: { meal: Meal; slots: Slot[] }) {
                       onChange={() => {
                         setSlotId(slot.id)
                         setSent('')
+                        setNotice('')
+                        create.reset()
                       }}
                       className="mt-0.5 size-4 accent-brand-500 focus:outline-none"
                     />
@@ -200,7 +222,11 @@ function RequestForm({ meal, slots }: { meal: Meal; slots: Slot[] }) {
             <select
               id={seatsId}
               value={chosenSeats}
-              onChange={(e) => setSeats(Number(e.target.value))}
+              onChange={(e) => {
+                setSeats(Number(e.target.value))
+                setNotice('')
+                create.reset()
+              }}
               className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base outline-none focus:border-ink focus:ring-2 focus:ring-ink"
             >
               {options.map((count) => (
@@ -221,10 +247,14 @@ function RequestForm({ meal, slots }: { meal: Meal; slots: Slot[] }) {
             ref={firstStepButton}
             type="button"
             className="w-full"
+            // Wait for the guest's existing requests, or we could send a duplicate
+            disabled={mine.isPending}
             onClick={() => {
               setSent('')
+              setNotice('')
               create.reset()
-              setReviewing(true)
+              setSlotId(selected.id)
+              setFrozen({ slotId: selected.id, seats: chosenSeats })
               // Move focus to the summary once it is on screen
               setTimeout(() => summary.current?.focus(), 0)
             }}
@@ -234,26 +264,27 @@ function RequestForm({ meal, slots }: { meal: Meal; slots: Slot[] }) {
         </>
       )}
 
-      {selected && reviewing && (
+      {reviewedSlot && frozen && (
         <div
           ref={summary}
           tabIndex={-1}
-          aria-labelledby="riepilogo-titolo"
+          role="group"
+          aria-labelledby={summaryTitleId}
           className="space-y-4 rounded-card bg-brand-50 p-4 focus:outline-none"
         >
-          <h4 id="riepilogo-titolo" className="font-semibold">
+          <h4 id={summaryTitleId} className="font-semibold">
             Riepilogo della richiesta
           </h4>
           <dl className="space-y-1 text-sm">
             <div>
               <dt className="inline font-semibold">Quando: </dt>
               <dd className="inline">
-                <SlotWhen startsAt={selected.starts_at} />
+                <SlotWhen startsAt={reviewedSlot.starts_at} />
               </dd>
             </div>
             <div>
               <dt className="inline font-semibold">Posti: </dt>
-              <dd className="inline">{formatSeats(chosenSeats)}</dd>
+              <dd className="inline">{formatSeats(frozen.seats)}</dd>
             </div>
             {message.trim() && (
               <div>
@@ -307,6 +338,11 @@ function RequestForm({ meal, slots }: { meal: Meal; slots: Slot[] }) {
         </div>
       )}
 
+      {notice && (
+        <p role="alert" className="text-sm text-red-700">
+          {notice}
+        </p>
+      )}
       <FormError error={create.error} />
       {/* Always mounted so screen readers announce the text when it changes */}
       <p role="status" className="text-sm text-green-700">

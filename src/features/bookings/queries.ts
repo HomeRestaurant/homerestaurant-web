@@ -96,14 +96,13 @@ export function useHostCancelBooking(mealId: string) {
   )
 }
 
-export type MyBookingsOptions = { scope: BookingScope; enabled?: boolean }
+export type MyBookingsOptions = { scope: BookingScope }
 
 /** Bookings the logged-in user made as a guest. */
-export function useMyBookings({ scope, enabled = true }: MyBookingsOptions) {
+export function useMyBookings({ scope }: MyBookingsOptions) {
   return useQuery({
     queryKey: keys.mine(scope),
     queryFn: () => unwrap(api.GET('/bookings/mine', { params: { query: { scope, limit: 100 } } })),
-    enabled,
   })
 }
 

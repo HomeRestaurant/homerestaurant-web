@@ -22,7 +22,7 @@ export function activeBookingText(status: BookingStatus): string {
 export function futureSlots(slots: Slot[], now: Date = new Date()): Slot[] {
   return slots
     .filter((slot) => new Date(slot.starts_at) > now)
-    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
 }
 
 /** A date can be requested if it has free seats and the guest has no live request for it. */
@@ -43,6 +43,29 @@ export function resolveSelectedSlot(
 /** Keeps the chosen number of seats within what the date still offers. */
 export function clampSeats(seats: number, available: number): number {
   return Math.max(1, Math.min(seats, available))
+}
+
+/**
+ * Whether the request the guest reviewed can still be sent as is: the date must still be
+ * there, free of a live request, with enough seats for what was chosen.
+ */
+export function isRequestStillValid(
+  slots: Slot[],
+  slotId: string,
+  seats: number,
+  active: Map<string, unknown> = new Map(),
+): boolean {
+  const slot = slots.find((candidate) => candidate.id === slotId)
+  return !!slot && !active.has(slot.id) && slot.available_seats >= seats
+}
+
+/** Withdrawing or cancelling only makes sense for a live request on a meal not yet started. */
+export function canCancelBooking(
+  booking: Pick<GuestBooking, 'status' | 'starts_at'>,
+  now: Date = new Date(),
+): boolean {
+  const isLive = booking.status === 'pending' || booking.status === 'confirmed'
+  return isLive && new Date(booking.starts_at) > now
 }
 
 /** Text of the first step of the cancel flow, depending on what the guest is undoing. */

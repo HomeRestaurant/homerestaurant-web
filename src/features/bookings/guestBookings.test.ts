@@ -3,10 +3,12 @@ import type { Slot } from '../../api/client'
 import {
   activeBookingBySlot,
   activeBookingText,
+  canCancelBooking,
   cancelCopy,
   clampSeats,
   futureSlots,
   isChoosable,
+  isRequestStillValid,
   resolveSelectedSlot,
 } from './guestBookings'
 
@@ -70,6 +72,40 @@ describe('isChoosable / resolveSelectedSlot', () => {
   })
   it('returns undefined when nothing can be requested', () => {
     expect(resolveSelectedSlot([slots[0]], active, null)).toBeUndefined()
+  })
+})
+
+describe('isRequestStillValid', () => {
+  const slots = [slot('a', '2030-05-02T18:00:00Z', 3), slot('b', '2030-05-03T18:00:00Z', 1)]
+
+  it('holds while the date exists with enough seats', () => {
+    expect(isRequestStillValid(slots, 'a', 3)).toBe(true)
+    expect(isRequestStillValid(slots, 'b', 1)).toBe(true)
+  })
+  it('fails when seats fell short, the date is gone or a live request exists', () => {
+    expect(isRequestStillValid(slots, 'b', 2)).toBe(false)
+    expect(isRequestStillValid(slots, 'gone', 1)).toBe(false)
+    expect(isRequestStillValid(slots, 'a', 1, new Map([['a', true]]))).toBe(false)
+  })
+})
+
+describe('canCancelBooking', () => {
+  const at = (status: 'pending' | 'confirmed' | 'declined' | 'cancelled', starts_at: string) => ({
+    status,
+    starts_at,
+  })
+
+  it('allows live requests on a meal still ahead', () => {
+    expect(canCancelBooking(at('pending', '2030-05-02T18:00:00Z'), NOW)).toBe(true)
+    expect(canCancelBooking(at('confirmed', '2030-05-02T18:00:00Z'), NOW)).toBe(true)
+  })
+  it('refuses a meal already started, including one starting right now', () => {
+    expect(canCancelBooking(at('confirmed', '2030-04-30T18:00:00Z'), NOW)).toBe(false)
+    expect(canCancelBooking(at('confirmed', NOW.toISOString()), NOW)).toBe(false)
+  })
+  it('refuses terminal states', () => {
+    expect(canCancelBooking(at('declined', '2030-05-02T18:00:00Z'), NOW)).toBe(false)
+    expect(canCancelBooking(at('cancelled', '2030-05-02T18:00:00Z'), NOW)).toBe(false)
   })
 })
 
