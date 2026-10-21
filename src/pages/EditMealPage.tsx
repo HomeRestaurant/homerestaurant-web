@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
-import type { Meal } from '../api/client'
+import type { MealOwner } from '../api/client'
 import { Button } from '../components/Button'
+import { ConfirmAction } from '../components/ConfirmAction'
 import { FormError } from '../components/FormError'
 import { PageState } from '../components/PageState'
 import { MealForm } from '../features/meals/MealForm'
@@ -37,11 +38,16 @@ export function EditMealPage() {
     <main className="mx-auto max-w-2xl space-y-12 px-6 py-10">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-semibold">Gestisci il pasto</h1>
-        {meal.is_active && (
-          <Link to={`/pasti/${meal.id}`} className="text-sm font-semibold underline">
-            Vedi pagina pubblica
+        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm font-semibold">
+          <Link to={`/pasti/${meal.id}/richieste`} className="underline">
+            Richieste
           </Link>
-        )}
+          {meal.is_active && (
+            <Link to={`/pasti/${meal.id}`} className="underline">
+              Vedi pagina pubblica
+            </Link>
+          )}
+        </div>
       </div>
       <VisibilitySection meal={meal} />
       <SlotsSection meal={meal} />
@@ -50,7 +56,7 @@ export function EditMealPage() {
   )
 }
 
-function VisibilitySection({ meal }: { meal: Meal }) {
+function VisibilitySection({ meal }: { meal: MealOwner }) {
   const update = useUpdateMeal(meal.id)
   return (
     <section className="flex flex-wrap items-center justify-between gap-4 rounded-card bg-brand-50 p-5">
@@ -70,12 +76,10 @@ function VisibilitySection({ meal }: { meal: Meal }) {
   )
 }
 
-function SlotsSection({ meal }: { meal: Meal }) {
+function SlotsSection({ meal }: { meal: MealOwner }) {
   const addSlots = useAddSlots(meal.id)
   const deleteSlot = useDeleteSlot(meal.id)
   const [rows, setRows] = useState(() => [newSlotRow()])
-  // Slot waiting for a second click to confirm deletion
-  const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const payload = toSlotPayload(rows)
 
   return (
@@ -94,34 +98,14 @@ function SlotsSection({ meal }: { meal: Meal }) {
                   <span className="inline-block first-letter:uppercase">{when}</span> ·{' '}
                   {slot.capacity} posti
                 </span>
-                {confirmingId === slot.id ? (
-                  <span className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        deleteSlot.mutate(slot.id, { onSettled: () => setConfirmingId(null) })
-                      }
-                      disabled={isDeleting}
-                      className="rounded-lg bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
-                    >
-                      {isDeleting ? 'Eliminazione…' : 'Conferma eliminazione'}
-                    </button>
-                    <button
-                      onClick={() => setConfirmingId(null)}
-                      disabled={isDeleting}
-                      className="rounded-lg px-3 py-1.5 text-muted hover:bg-gray-100"
-                    >
-                      Annulla
-                    </button>
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setConfirmingId(slot.id)}
-                    aria-label={`Elimina la data ${when}`}
-                    className="rounded-lg px-3 py-1.5 text-muted hover:bg-gray-100"
-                  >
-                    Elimina
-                  </button>
-                )}
+                <ConfirmAction
+                  label="Elimina"
+                  ariaLabel={`Elimina la data ${when}`}
+                  confirmLabel="Conferma eliminazione"
+                  pendingLabel="Eliminazione…"
+                  isPending={isDeleting}
+                  onConfirm={(done) => deleteSlot.mutate(slot.id, { onSettled: done })}
+                />
               </li>
             )
           })}
@@ -145,7 +129,7 @@ function SlotsSection({ meal }: { meal: Meal }) {
   )
 }
 
-function DetailsSection({ meal }: { meal: Meal }) {
+function DetailsSection({ meal }: { meal: MealOwner }) {
   const update = useUpdateMeal(meal.id)
   return (
     <section>
