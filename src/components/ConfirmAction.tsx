@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 type Props = {
   /** Label of the first button, e.g. "Elimina". */
@@ -40,10 +40,26 @@ export function ConfirmAction({
   tone = 'danger',
 }: Props) {
   const [confirming, setConfirming] = useState(false)
+  const trigger = useRef<HTMLButtonElement>(null)
+  const step = useRef<HTMLDivElement>(null)
+  const backedOut = useRef(false)
+
+  // Keyboard users must not lose their place: move focus into the confirmation step
+  // (the optional field first, else the confirm button) and back to the trigger if they back out
+  useEffect(() => {
+    if (confirming) {
+      step.current?.querySelector<HTMLElement>('input, textarea, button')?.focus()
+    } else if (backedOut.current) {
+      backedOut.current = false
+      trigger.current?.focus()
+    }
+  }, [confirming])
 
   if (!confirming) {
     return (
       <button
+        ref={trigger}
+        type="button"
         onClick={() => setConfirming(true)}
         aria-label={ariaLabel}
         className={`rounded-lg px-3 py-1.5 text-muted hover:bg-gray-100 ${focusRing}`}
@@ -55,10 +71,11 @@ export function ConfirmAction({
 
   const close = () => setConfirming(false)
   return (
-    <span className="flex flex-col gap-2">
+    <div ref={step} className="flex flex-col gap-2">
       {details}
-      <span className="flex gap-2">
+      <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => onConfirm(close)}
           disabled={isPending}
           className={`rounded-lg px-3 py-1.5 font-semibold text-white disabled:opacity-60 ${tones[tone]} ${focusRing}`}
@@ -66,7 +83,9 @@ export function ConfirmAction({
           {isPending ? pendingLabel : confirmLabel}
         </button>
         <button
+          type="button"
           onClick={() => {
+            backedOut.current = true
             close()
             onCancel?.()
           }}
@@ -75,7 +94,7 @@ export function ConfirmAction({
         >
           Annulla
         </button>
-      </span>
-    </span>
+      </div>
+    </div>
   )
 }

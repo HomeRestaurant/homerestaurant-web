@@ -16,6 +16,12 @@ export function formatSeats(count: number): string {
   return `${count} ${count === 1 ? 'posto' : 'posti'}`
 }
 
+/** "Al completo", "1 posto ancora libero", "3 posti ancora liberi". */
+export function formatSeatsLeft(count: number): string {
+  if (count <= 0) return 'Al completo'
+  return count === 1 ? '1 posto ancora libero' : `${count} posti ancora liberi`
+}
+
 /** Values for the seats selector: 1..available, never above the per-request cap. */
 export function seatOptions(available: number): number[] {
   const max = Math.min(Math.floor(available), MAX_SEATS_PER_REQUEST)

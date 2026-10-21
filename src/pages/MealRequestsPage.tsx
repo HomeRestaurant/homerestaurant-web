@@ -7,7 +7,11 @@ import { ChipRadio } from '../components/ChipSelect'
 import { FormError } from '../components/FormError'
 import { PageState } from '../components/PageState'
 import { TextField } from '../components/TextField'
-import { bookingStatusLabel, formatSeats } from '../features/bookings/bookingStatus'
+import {
+  bookingStatusLabel,
+  formatSeats,
+  formatSeatsLeft,
+} from '../features/bookings/bookingStatus'
 import {
   useConfirmBooking,
   useDeclineBooking,
@@ -149,10 +153,8 @@ function Requests({ meal }: { meal: MealOwner }) {
                   </span>
                   , {formatSlotTime(group.startsAt)}
                 </h2>
-                {left !== undefined && (
-                  <p className="text-sm text-muted">
-                    {left === 0 ? 'Al completo' : `${formatSeats(left)} ancora liberi`}
-                  </p>
+                {left !== undefined && tab !== 'past' && (
+                  <p className="text-sm text-muted">{formatSeatsLeft(left)}</p>
                 )}
               </div>
               <ul className="divide-y divide-line">
@@ -162,6 +164,7 @@ function Requests({ meal }: { meal: MealOwner }) {
                     booking={booking}
                     meal={meal}
                     isConfirming={confirm.isPending && confirm.variables?.bookingId === booking.id}
+                    confirmLocked={confirm.isPending}
                     isDeclining={decline.isPending && decline.variables?.bookingId === booking.id}
                     isCancelling={cancel.isPending && cancel.variables?.bookingId === booking.id}
                     error={
@@ -187,6 +190,7 @@ type RowProps = {
   booking: HostBooking
   meal: MealOwner
   isConfirming: boolean
+  confirmLocked: boolean
   isDeclining: boolean
   isCancelling: boolean
   error: Error | null
@@ -199,6 +203,7 @@ function RequestRow({
   booking,
   meal,
   isConfirming,
+  confirmLocked,
   isDeclining,
   isCancelling,
   error,
@@ -248,7 +253,7 @@ function RequestRow({
 
       {booking.status === 'pending' && (
         <div className="flex flex-wrap items-start gap-2 text-sm">
-          <Button className="px-4 py-1.5 text-sm" disabled={busy} onClick={onConfirm}>
+          <Button size="sm" disabled={busy || confirmLocked} onClick={onConfirm}>
             {isConfirming ? 'Conferma in corso…' : 'Conferma'}
           </Button>
           <ConfirmAction
@@ -272,7 +277,7 @@ function RequestRow({
         <div className="text-sm">
           {booking.late_cancellation_window && (
             <p className="mb-2 text-muted">
-              Mancano meno di 24 ore: l’annullamento verrà registrato come tardivo.
+              Manca poco all’inizio: l’annullamento verrà registrato come tardivo.
             </p>
           )}
           <ConfirmAction
@@ -318,12 +323,12 @@ function GuestDietaryBlock({ booking, meal }: { booking: HostBooking; meal: Meal
           )}
           {allergies.length > 0 && (
             <li>
-              <span className="font-semibold">Allergie e intolleranze:</span> {allergies.join('. ')}
+              <span className="font-semibold">Allergie e intolleranze:</span> {allergies.join(', ')}
             </li>
           )}
           {dietary.disliked_foods && (
             <li>
-              <span className="font-semibold">Non mangia:</span> {dietary.disliked_foods}
+              <span className="font-semibold">Non gradisce:</span> {dietary.disliked_foods}
             </li>
           )}
         </ul>
@@ -331,10 +336,10 @@ function GuestDietaryBlock({ booking, meal }: { booking: HostBooking; meal: Meal
         <p>{booking.guest.first_name} mangia di tutto e non ha allergie.</p>
       )}
       {(allergens.length > 0 || unsuitableDiets.length > 0) && (
-        <div role="alert" className="space-y-1 rounded-lg border border-red-200 bg-red-50 p-3">
+        <div className="space-y-1 rounded-lg border border-red-200 bg-red-50 p-3">
           {allergens.length > 0 && (
             <p className="font-semibold text-red-800">
-              Attenzione: nel tuo pasto c’è {labelList(allergens, ALLERGENS).toLowerCase()}, che{' '}
+              Attenzione: il tuo pasto contiene {labelList(allergens, ALLERGENS).toLowerCase()}, che{' '}
               {booking.guest.first_name} ha indicato tra le sue allergie.
             </p>
           )}

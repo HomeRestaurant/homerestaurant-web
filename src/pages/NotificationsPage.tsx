@@ -25,16 +25,18 @@ export function NotificationsPage() {
         <h1 className="text-3xl font-semibold">Notifiche</h1>
         <Button
           variant="secondary"
-          className="px-4 py-2 text-sm"
+          size="sm"
           disabled={!hasUnread || markAllRead.isPending}
           onClick={() => markAllRead.mutate()}
         >
           {markAllRead.isPending ? 'Un attimo…' : 'Segna tutte come lette'}
         </Button>
       </div>
-      <div className="mt-4 space-y-2">
-        <FormError error={markRead.error ?? markAllRead.error} />
-      </div>
+      {(markRead.error ?? markAllRead.error) && (
+        <div className="mt-4">
+          <FormError error={markRead.error ?? markAllRead.error} />
+        </div>
+      )}
 
       {notifications.isPending && <PageState>Caricamento…</PageState>}
       {notifications.isError && (

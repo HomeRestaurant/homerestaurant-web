@@ -43,7 +43,8 @@ function useBookingMutation(mutationFn: (variables: BookingActionVariables) => P
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn,
-    onSuccess: () =>
+    // onSettled: after a 409 the lists are stale too (the guest may have just cancelled)
+    onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: keys.all }),
         queryClient.invalidateQueries({ queryKey: ['meals'] }),

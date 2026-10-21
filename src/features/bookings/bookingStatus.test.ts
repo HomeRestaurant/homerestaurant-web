@@ -4,6 +4,7 @@ import {
   bookingStatusLabel,
   cancellationLabel,
   formatSeats,
+  formatSeatsLeft,
   seatOptions,
 } from './bookingStatus'
 
@@ -62,5 +63,13 @@ describe('bookingStatusLabel', () => {
     expect(
       bookingStatusLabel({ status: 'cancelled', cancelled_by: 'host', cancelled_late: false }),
     ).toBe('Annullata dall’host')
+  })
+})
+
+describe('formatSeatsLeft', () => {
+  it('agrees with the number of free seats', () => {
+    expect(formatSeatsLeft(0)).toBe('Al completo')
+    expect(formatSeatsLeft(1)).toBe('1 posto ancora libero')
+    expect(formatSeatsLeft(3)).toBe('3 posti ancora liberi')
   })
 })
