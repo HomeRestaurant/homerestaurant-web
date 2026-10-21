@@ -103,7 +103,7 @@ export function MealDetailPage() {
           <AllergensSection meal={data} />
         </div>
 
-        <aside className="h-fit rounded-card border border-line p-6 shadow-lg md:sticky md:top-6">
+        <aside className="h-fit rounded-card border border-line p-6 shadow-lg md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto">
           <h2 className="text-2xl font-semibold">Pasto offerto</h2>
           <p className="mt-1 text-sm text-muted">
             Secondo {data.host.first_name} varrebbe circa{' '}

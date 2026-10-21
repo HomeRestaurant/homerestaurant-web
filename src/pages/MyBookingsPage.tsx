@@ -11,9 +11,12 @@ import {
   bookingStatusLabel,
   formatSeats,
 } from '../features/bookings/bookingStatus'
-import { cancelCopy } from '../features/bookings/guestBookings'
+import { canCancelBooking, cancelCopy } from '../features/bookings/guestBookings'
 import { useCancelMyBooking, useMyBookings } from '../features/bookings/queries'
 import { formatLongDate, formatSlotTime } from '../lib/format'
+
+const focusRing =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2'
 
 const SCOPE_LABELS: Record<BookingScope, string> = { upcoming: 'In arrivo', past: 'Passate' }
 
@@ -24,7 +27,7 @@ const EMPTY_TEXT: Record<BookingScope, string> = {
 
 export function MyBookingsPage() {
   const [scope, setScope] = useState<BookingScope>('upcoming')
-  // The past list is only fetched once its tab is opened
+  // Each tab is its own query, fetched when first opened
   const bookings = useMyBookings({ scope })
   const cancel = useCancelMyBooking()
   const [message, setMessage] = useState('')
@@ -73,7 +76,10 @@ export function MyBookingsPage() {
       {bookings.data?.length === 0 && (
         <PageState>
           <p>{EMPTY_TEXT[scope]}</p>
-          <Link to="/" className="mt-2 inline-block font-semibold text-ink underline">
+          <Link
+            to="/"
+            className={`mt-2 inline-block rounded font-semibold text-ink underline ${focusRing}`}
+          >
             Cerca un pasto
           </Link>
         </PageState>
@@ -107,14 +113,18 @@ function BookingRow({
 }) {
   const { meal } = booking
   const place = [meal.neighborhood, meal.city].filter(Boolean).join(', ')
-  const isActive = booking.status === 'pending' || booking.status === 'confirmed'
+  // The past tab also lists confirmed meals that already started: those can't be cancelled
+  const canCancel = canCancelBooking(booking)
   const copy = cancelCopy(booking.status)
 
   return (
     <li className="space-y-3 py-5">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <h2 className="min-w-0 text-lg font-semibold break-words">
-          <Link to={`/pasti/${meal.id}`} className="underline-offset-2 hover:underline">
+          <Link
+            to={`/pasti/${meal.id}`}
+            className={`rounded underline-offset-2 hover:underline ${focusRing}`}
+          >
             {meal.title}
           </Link>
         </h2>
@@ -149,13 +159,8 @@ function BookingRow({
         <p className="text-sm text-muted break-words">Motivo: {booking.status_reason}</p>
       )}
 
-      {isActive && (
+      {canCancel && (
         <div className="space-y-2 text-sm">
-          {booking.late_cancellation_window && (
-            <p className="text-muted">
-              Manca poco all’inizio: la disdetta verrà registrata come tardiva.
-            </p>
-          )}
           <ConfirmAction
             label={copy.label}
             ariaLabel={`${copy.label}: ${meal.title}`}
@@ -163,6 +168,13 @@ function BookingRow({
             pendingLabel={copy.pendingLabel}
             isPending={isCancelling}
             onConfirm={onCancel}
+            details={
+              booking.late_cancellation_window ? (
+                <p className="text-muted">
+                  Manca poco all’inizio: la disdetta verrà registrata come tardiva.
+                </p>
+              ) : undefined
+            }
           />
         </div>
       )}
