@@ -46,13 +46,22 @@ export function MyMealsPage() {
                 {meal.is_active ? 'Pubblicato' : 'Nascosto'}
               </span>
             </div>
-            <Link
-              to={`/pasti/${meal.id}/modifica`}
-              aria-label={`Gestisci ${meal.title}`}
-              className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
-            >
-              Gestisci
-            </Link>
+            <div className="flex shrink-0 flex-wrap justify-end gap-2">
+              <Link
+                to={`/pasti/${meal.id}/richieste`}
+                aria-label={`Richieste per ${meal.title}`}
+                className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+              >
+                Richieste
+              </Link>
+              <Link
+                to={`/pasti/${meal.id}/modifica`}
+                aria-label={`Gestisci ${meal.title}`}
+                className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+              >
+                Gestisci
+              </Link>
+            </div>
           </li>
         ))}
       </ul>

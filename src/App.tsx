@@ -7,8 +7,10 @@ import { EditMealPage } from './pages/EditMealPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { MealDetailPage } from './pages/MealDetailPage'
+import { MealRequestsPage } from './pages/MealRequestsPage'
 import { MyMealsPage } from './pages/MyMealsPage'
 import { NewMealPage } from './pages/NewMealPage'
+import { NotificationsPage } from './pages/NotificationsPage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -25,6 +27,7 @@ export function App() {
             <Route path="/registrati" element={<RegisterPage />} />
             <Route element={<RequireAuth />}>
               <Route path="/benvenuto" element={<OnboardingPage />} />
+              <Route path="/notifiche" element={<NotificationsPage />} />
             </Route>
             <Route element={<RequirePreferences />}>
               <Route path="/" element={<HomePage />} />
@@ -33,6 +36,7 @@ export function App() {
                 <Route path="/profilo" element={<ProfilePage />} />
                 <Route path="/pasti/nuovo" element={<NewMealPage />} />
                 <Route path="/pasti/:mealId/modifica" element={<EditMealPage />} />
+                <Route path="/pasti/:mealId/richieste" element={<MealRequestsPage />} />
                 <Route path="/i-miei-pasti" element={<MyMealsPage />} />
               </Route>
             </Route>

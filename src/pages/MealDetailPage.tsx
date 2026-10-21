@@ -46,12 +46,20 @@ export function MealDetailPage() {
           </p>
         </div>
         {isOwner && (
-          <Link
-            to={`/pasti/${data.id}/modifica`}
-            className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
-          >
-            Modifica
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              to={`/pasti/${data.id}/richieste`}
+              className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+            >
+              Richieste
+            </Link>
+            <Link
+              to={`/pasti/${data.id}/modifica`}
+              className="rounded-lg border border-ink px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+            >
+              Modifica
+            </Link>
+          </div>
         )}
       </div>
 
