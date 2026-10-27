@@ -5,8 +5,12 @@ describe('isNavigableLink', () => {
   it('accepts the host requests page', () => {
     expect(isNavigableLink('/pasti/abc-123/richieste')).toBe(true)
   })
-  it('rejects pages that do not exist yet and unsafe values', () => {
-    expect(isNavigableLink('/prenotazioni')).toBe(false)
+  it('accepts the guest bookings page', () => {
+    expect(isNavigableLink('/prenotazioni')).toBe(true)
+  })
+  it('rejects unknown pages and unsafe values', () => {
+    expect(isNavigableLink('/prenotazioni/altro')).toBe(false)
+    expect(isNavigableLink('//prenotazioni')).toBe(false)
     expect(isNavigableLink('//evil.example/pasti/x/richieste')).toBe(false)
     expect(isNavigableLink('https://evil.example')).toBe(false)
     expect(isNavigableLink(null)).toBe(false)

@@ -8,6 +8,7 @@ import { FormError } from '../components/FormError'
 import { PageState } from '../components/PageState'
 import { TextField } from '../components/TextField'
 import {
+  BOOKING_STATUS_STYLES,
   bookingStatusLabel,
   formatSeats,
   formatSeatsLeft,
@@ -29,14 +30,6 @@ import { foodWarnings } from '../features/meals/foodWarnings'
 import { useMyMeals } from '../features/meals/queries'
 import { ALLERGENS, DIETS, labelList } from '../features/preferences/options'
 import { formatLongDate, formatSlotTime } from '../lib/format'
-
-const STATUS_STYLES: Record<HostBooking['status'], string> = {
-  pending: 'bg-brand-100 text-brand-700',
-  confirmed: 'bg-green-100 text-green-800',
-  declined: 'bg-gray-100 text-muted',
-  cancelled: 'bg-gray-100 text-muted',
-  expired: 'bg-gray-100 text-muted',
-}
 
 const EMPTY_TEXT: Record<RequestTab, string> = {
   pending:
@@ -237,7 +230,7 @@ function RequestRow({
           <p className="text-sm text-muted">{formatSeats(booking.seats)}</p>
         </div>
         <span
-          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[booking.status]}`}
+          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${BOOKING_STATUS_STYLES[booking.status]}`}
         >
           {bookingStatusLabel(booking)}
         </span>

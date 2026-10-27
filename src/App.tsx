@@ -8,6 +8,7 @@ import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { MealDetailPage } from './pages/MealDetailPage'
 import { MealRequestsPage } from './pages/MealRequestsPage'
+import { MyBookingsPage } from './pages/MyBookingsPage'
 import { MyMealsPage } from './pages/MyMealsPage'
 import { NewMealPage } from './pages/NewMealPage'
 import { NotificationsPage } from './pages/NotificationsPage'
@@ -38,6 +39,7 @@ export function App() {
                 <Route path="/pasti/:mealId/modifica" element={<EditMealPage />} />
                 <Route path="/pasti/:mealId/richieste" element={<MealRequestsPage />} />
                 <Route path="/i-miei-pasti" element={<MyMealsPage />} />
+                <Route path="/prenotazioni" element={<MyBookingsPage />} />
               </Route>
             </Route>
           </Routes>

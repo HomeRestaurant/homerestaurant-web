@@ -44,3 +44,12 @@ export function bookingStatusLabel(booking: {
     ? cancellationLabel(booking.cancelled_by, booking.cancelled_late)
     : BOOKING_STATUS_LABELS[booking.status]
 }
+
+/** Badge colors per status, shared by the host and guest booking lists. */
+export const BOOKING_STATUS_STYLES: Record<BookingStatus, string> = {
+  pending: 'bg-brand-100 text-brand-700',
+  confirmed: 'bg-green-100 text-green-800',
+  declined: 'bg-gray-100 text-muted',
+  cancelled: 'bg-gray-100 text-muted',
+  expired: 'bg-gray-100 text-muted',
+}
