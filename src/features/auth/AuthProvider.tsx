@@ -30,19 +30,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     tokenStorage.clear()
     setToken(null)
-    queryClient.removeQueries({ queryKey: ME_QUERY_KEY })
+    // Drop everything cached for this user (bookings, notifications, own meals), not just `me`
+    queryClient.clear()
   }, [queryClient])
 
-  const login = useCallback(async (email: string, password: string) => {
-    const { data, error, response } = await api.POST('/auth/login', {
-      body: { username: email, password, scope: '' },
-      bodySerializer: (body) => new URLSearchParams(body as Record<string, string>),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
-    if (error) throw toApiError(response.status, error)
-    tokenStorage.set(data.access_token)
-    setToken(data.access_token)
-  }, [])
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const { data, error, response } = await api.POST('/auth/login', {
+        body: { username: email, password, scope: '' },
+        bodySerializer: (body) => new URLSearchParams(body as Record<string, string>),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+      if (error) throw toApiError(response.status, error)
+      // Never mix the cache of a previous user with the new session
+      queryClient.clear()
+      tokenStorage.set(data.access_token)
+      setToken(data.access_token)
+    },
+    [queryClient],
+  )
 
   const value = useMemo<AuthContextValue>(
     () => ({

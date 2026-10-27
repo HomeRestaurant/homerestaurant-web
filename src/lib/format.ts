@@ -39,3 +39,26 @@ export function nowForDatetimeInput(): string {
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
   return now.toISOString().slice(0, 16)
 }
+
+/** "sabato 24 ottobre": heading of a group of bookings. */
+export function formatLongDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('it-IT', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+}
+
+const relativeTime = new Intl.RelativeTimeFormat('it-IT', { numeric: 'auto' })
+
+/** "5 minuti fa", "ieri"; falls back to an absolute date after a week. */
+export function formatRelativeDate(iso: string, now: Date = new Date()): string {
+  const date = new Date(iso)
+  const seconds = Math.round((date.getTime() - now.getTime()) / 1000)
+  const abs = Math.abs(seconds)
+  if (seconds > 0 || abs < 60) return 'adesso'
+  if (abs < 3600) return relativeTime.format(Math.round(seconds / 60), 'minute')
+  if (abs < 86_400) return relativeTime.format(Math.round(seconds / 3600), 'hour')
+  if (abs < 7 * 86_400) return relativeTime.format(Math.round(seconds / 86_400), 'day')
+  return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
+}

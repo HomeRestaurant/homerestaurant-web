@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { useAuth } from '../features/auth/AuthContext'
+import { NotificationBell } from '../features/notifications/NotificationBell'
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2'
@@ -35,6 +36,7 @@ export function Header() {
               <Link to="/i-miei-pasti" className={navItem}>
                 I miei pasti
               </Link>
+              <NotificationBell className={`${navItem} flex items-center`} />
               <Link to="/profilo" className={`${navItem} max-w-48 truncate`}>
                 {user ? `Ciao, ${user.first_name}` : 'Profilo'}
               </Link>
